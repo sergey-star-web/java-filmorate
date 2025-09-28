@@ -2,16 +2,19 @@ package ru.yandex.practicum.filmorate.valid;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import jakarta.validation.ValidationException;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
+import static ru.yandex.practicum.filmorate.constant.Constant.formatter;
+
+@Slf4j
 public class MinReleaseDateValidator implements ConstraintValidator<MinReleaseDate, LocalDate> {
     private LocalDate minDate;
 
     @Override
     public void initialize(MinReleaseDate constraintAnnotation) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         this.minDate = LocalDate.parse(constraintAnnotation.value(), formatter);
     }
 
@@ -20,6 +23,11 @@ public class MinReleaseDateValidator implements ConstraintValidator<MinReleaseDa
         if (value == null) {
             return true; // или false, если null недопустимо
         }
-        return !value.isBefore(minDate);
+        if (!value.isBefore(minDate)) {
+            return true;
+        } else {
+            log.error("Фильм не прошел валидацию по дате релиза");
+            throw new ValidationException("Дата релиза не может быть раньше 28 декабря 1895");
+        }
     }
 }
