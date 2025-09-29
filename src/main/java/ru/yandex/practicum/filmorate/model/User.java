@@ -20,10 +20,10 @@ import static ru.yandex.practicum.filmorate.constant.Constant.dateTimeFormatStri
 public class User {
     private Long id;
     @NotBlank(message = "Почта не может быть пустым.")
-    @Email
+    @Email(message = "Электронная почта не может быть пустой и должна содержать символ @")
     private String email;
     @NotBlank(message = "Логин не может быть пустым.")
-    @Pattern(regexp = "^[^\\s]+$", message = "Логин не должен содержать пробелов")
+    @Pattern(regexp = "^\\S+$", message = "Логин не должен содержать пробелов")
     private String login;
     @Getter
     private String name;

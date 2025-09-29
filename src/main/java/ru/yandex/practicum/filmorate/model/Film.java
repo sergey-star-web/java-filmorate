@@ -31,7 +31,7 @@ public class Film {
     private LocalDate releaseDate;
     @JsonSerialize(using = DurationMinutesSerializer.class)
     @JsonDeserialize(using = DurationMinutesDeserializer.class)
-    @PositiveDuration(message = "Продолжительность фильма должна быть положительным числом")
+    @PositiveDuration
     private Duration duration;
 
     public void setDuration(Integer duration) {
