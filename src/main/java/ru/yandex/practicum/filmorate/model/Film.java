@@ -1,19 +1,14 @@
 package ru.yandex.practicum.filmorate.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hibernate.validator.constraints.Length;
-import ru.yandex.practicum.filmorate.serializer.DurationMinutesDeserializer;
-import ru.yandex.practicum.filmorate.serializer.DurationMinutesSerializer;
 import ru.yandex.practicum.filmorate.valid.MinReleaseDate;
-import ru.yandex.practicum.filmorate.valid.PositiveDuration;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import static ru.yandex.practicum.filmorate.constant.Constant.dateTimeFormatString;
 
@@ -29,12 +24,6 @@ public class Film {
     @JsonFormat(pattern = dateTimeFormatString)
     @MinReleaseDate
     private LocalDate releaseDate;
-    @JsonSerialize(using = DurationMinutesSerializer.class)
-    @JsonDeserialize(using = DurationMinutesDeserializer.class)
-    @PositiveDuration
-    private Duration duration;
-
-    public void setDuration(Integer duration) {
-        this.duration = Duration.ofMinutes(duration);
-    }
+    @Min(value = 0, message = "Продолжительность фильма должна быть положительным числом")
+    private Integer duration;
 }

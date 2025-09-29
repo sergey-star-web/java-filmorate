@@ -5,7 +5,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.time.Duration;
 import java.time.LocalDate;
 
 @SpringBootApplication
@@ -16,7 +15,7 @@ public class FilmorateApplication {
 				.id(1L)
 				.name("Harry Potter")
 				.releaseDate(LocalDate.of(2022, 1, 1))
-				.duration(Duration.ofMinutes(110))
+				.duration(110)
 				.build();
 		User dragon777 = User.builder()
 				.id(12L)
