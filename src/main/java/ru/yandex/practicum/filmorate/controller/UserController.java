@@ -2,9 +2,12 @@ package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.List;
 
@@ -12,24 +15,55 @@ import java.util.List;
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    private final InMemoryUserStorage userStorage;
+    private final UserService userService;
 
-    public UserController(InMemoryUserStorage userStorage) {
-        this.userStorage = userStorage;
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
     @PostMapping
     public User create(@Valid @RequestBody User user) {
-        return userStorage.create(user);
+        return userService.createUser(user);
     }
 
     @GetMapping()
     public List<User> getUsers() {
-        return userStorage.getUsers();
+        return userService.getUsers();
     }
 
     @PutMapping
     public User update(@Valid @RequestBody User updateUser) {
-        return userStorage.update(updateUser);
+        return userService.updateUser(updateUser);
+    }
+
+    // Получение пользователя по идентификатору
+    @GetMapping("/{id}")
+    public ResponseEntity<User> getUser(@PathVariable Long id) {
+        User user = userService.getUser(id);
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(user);
+    }
+
+    // Добавление пользователя в друзья
+    @PutMapping("/{id}/friends/{friendId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void addFriend(@PathVariable Long id, @PathVariable Long friendId) {
+        userService.addFriend(id, friendId);
+    }
+
+    // Удаление пользователя из друзей
+    @DeleteMapping("/{id}/friends/{friendId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeFriend(@PathVariable Long id, @PathVariable Long friendId) {
+        userService.removeFriend(id, friendId);
+    }
+
+    // Получение списка друзей пользователя
+    @GetMapping("/{id}/friends")
+    public List<User> getFriends(@PathVariable Long id) {
+        return userService.getFriends(id);
     }
 }

@@ -27,7 +27,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         return idCounter++;
     }
 
-    public List<Film> getfilms() {
+    public List<Film> getFilms() {
         return new ArrayList<>(films.values());
     }
 

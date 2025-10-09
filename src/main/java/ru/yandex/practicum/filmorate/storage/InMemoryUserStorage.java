@@ -31,6 +31,10 @@ public class InMemoryUserStorage implements UserStorage {
         return new ArrayList<>(users.values());
     }
 
+    public User getUser(Long id) {
+        return users.get(id);
+    }
+
     public User update(User updateUser) {
         Long id = updateUser.getId();
         User user = users.get(id);
