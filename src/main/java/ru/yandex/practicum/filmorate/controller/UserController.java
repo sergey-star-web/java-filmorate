@@ -28,13 +28,20 @@ public class UserController {
     }
 
     @GetMapping()
-    public List<User> getUsers() {
-        return userService.getUsers();
+    public ResponseEntity<List<User>> getUsers() {
+        if (userService.getUsers().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(userService.getUsers());
+        }
+        return ResponseEntity.ok(userService.getUsers());
     }
 
     @PutMapping
-    public User update(@Valid @RequestBody User updateUser) {
-        return userService.updateUser(updateUser);
+    public ResponseEntity<User> update(@Valid @RequestBody User updateUser) {
+        User user = userService.getUser(updateUser.getId());
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(updateUser);
+        }
+        return ResponseEntity.ok(userService.updateUser(updateUser));
     }
 
     // Получение пользователя по идентификатору
@@ -58,12 +65,23 @@ public class UserController {
     @DeleteMapping("/{id}/friends/{friendId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void removeFriend(@PathVariable Long id, @PathVariable Long friendId) {
-        userService.removeFriend(id, friendId);
+         userService.removeFriend(id, friendId);
     }
 
     // Получение списка друзей пользователя
     @GetMapping("/{id}/friends")
-    public List<User> getFriends(@PathVariable Long id) {
-        return userService.getFriends(id);
+    public ResponseEntity<List<User>> getFriends(@PathVariable Long id) {
+        if (userService.getFriends(id).isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(userService.getFriends(id));
+        }
+        return ResponseEntity.ok(userService.getFriends(id));
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public ResponseEntity<List<User>> getCommonFriends(@PathVariable Long id, @PathVariable Long otherId) {
+        if (userService.getCommonFriends(id, otherId).isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(userService.getCommonFriends(id, otherId));
+        }
+        return ResponseEntity.ok(userService.getCommonFriends(id, otherId));
     }
 }

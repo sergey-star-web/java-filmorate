@@ -1,18 +1,18 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
 public class InMemoryFilmStorage implements FilmStorage {
     private HashMap<Long, Film> films = new HashMap<>();
+    private Map<Long, Set<Long>> likes = new HashMap<>();
     private Long idCounter = 1L;
 
     public Film create(Film film) {
@@ -31,20 +31,52 @@ public class InMemoryFilmStorage implements FilmStorage {
         return new ArrayList<>(films.values());
     }
 
+    public Film getFilm(Long id) {
+        return films.get(id);
+    }
+
     public Film update(Film updatedFilm) {
         Long id = updatedFilm.getId();
-        Film film = films.get(id);
-        isNullFilm(film);
+        isNullFilm(id);
         films.put(updatedFilm.getId(), updatedFilm);
         log.info("Фильм успешно обновлен. Измененный фильм: {}", updatedFilm);
         return updatedFilm;
     }
 
-    private void isNullFilm(Film film) {
+    private Film isNullFilm(Long id) {
+        Film film = films.get(id);
         if (film == null) {
-            String errorMessage = String.format("Не найден фильм с %d", film.getId());
-            log.error(errorMessage);
-            throw new ValidationException(errorMessage);
+            String errorMessage = String.format("Не найден фильм с %d", id);
+            log.warn(errorMessage);
+            throw new NotFoundException(errorMessage);
         }
+        return film;
+    }
+
+    public void addLike(Long filmId, Long userId) {
+        if (films.containsKey(filmId)) {
+            likes.computeIfAbsent(filmId, k -> new HashSet<>()).add(userId);
+        } else {
+            // Обработка случая, когда фильм не найден
+            throw new IllegalArgumentException("Фильм не найден");
+        }
+    }
+
+    // Метод для удаления лайка у фильма
+    public void removeLike(Long filmId, Long userId) {
+        likes.getOrDefault(filmId, new HashSet<>()).remove(userId);
+    }
+
+    // Метод для получения списка популярных фильмов по количеству лайков
+    public List<Film> getPopularFilms(Integer count) {
+        // Пример реализации, где фильмы сортируются по количеству лайков и возвращаются первые 'count' фильмов
+        return films.values().stream()
+                .sorted((f1, f2) -> Integer.compare(countLikes(f2.getId()), countLikes(f1.getId())))
+                .limit(count)
+                .collect(Collectors.toList());
+    }
+
+    private int countLikes(Long filmId) {
+        return likes.getOrDefault(filmId, new HashSet<>()).size();
     }
 }

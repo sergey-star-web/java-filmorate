@@ -4,9 +4,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Service
 public class UserService {
@@ -33,39 +31,18 @@ public class UserService {
     }
 
     public void addFriend(Long userId, Long friendId) {
-        User user = userStorage.getUser(userId);
-        User friend = userStorage.getUser(friendId);
-        if (user != null && friend != null) {
-            user.addFriend(friendId);
-            userStorage.update(user);
-        } else {
-            throw new IllegalArgumentException("Пользователь или друг не найдены");
-        }
+         userStorage.addFriend(userId, friendId);
     }
 
     public void removeFriend(Long userId, Long friendId) {
-        User user = userStorage.getUser(userId);
-        if (user != null) {
-            user.removeFriend(friendId);
-            userStorage.update(user);
-        } else {
-            throw new IllegalArgumentException("Пользователь не найден");
-        }
+         userStorage.removeFriend(userId, friendId);
     }
 
     public List<User> getFriends(Long userId) {
-        User user = userStorage.getUser(userId);
-        if (user == null) {
-            throw new IllegalArgumentException("Пользователь не найден");
-        }
-        Set<Long> friendIds = user.getFriends();
-        List<User> friends = new ArrayList<>();
-        for (Long friendId : friendIds) {
-            User friend = userStorage.getUser(friendId);
-            if (friend != null) {
-                friends.add(friend);
-            }
-        }
-        return friends;
+        return userStorage.getFriends(userId);
+    }
+
+    public List<User> getCommonFriends(Long id, Long otherId) {
+        return userStorage.getCommonFriends(id, otherId);
     }
 }

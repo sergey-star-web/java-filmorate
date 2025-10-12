@@ -8,4 +8,8 @@ public interface FilmStorage {
     Film create(Film film);
     Film update(Film film);
     List<Film> getFilms();
+    Film getFilm(Long id);
+    void addLike(Long filmId, Long userId);
+    void removeLike(Long filmId, Long userId);
+    List<Film> getPopularFilms(Integer count);
 }

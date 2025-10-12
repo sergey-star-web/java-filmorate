@@ -10,6 +10,11 @@ import org.hibernate.validator.constraints.Length;
 import ru.yandex.practicum.filmorate.valid.MinReleaseDate;
 
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import static ru.yandex.practicum.filmorate.constant.Constant.dateTimeFormatString;
 
 @Data
