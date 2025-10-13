@@ -26,12 +26,12 @@ public class FilmService {
         return filmStorage.update(updatedFilm);
     }
 
-    public void addLike(Long filmId, Long userId) {
-        this.filmStorage.addLike(filmId, userId);
+    public Film addLike(Long filmId, Long userId) {
+        return this.filmStorage.addLike(filmId, userId);
     }
 
-    public void removeLike(Long filmId, Long userId) {
-        this.filmStorage.addLike(filmId, userId);
+    public Film removeLike(Long filmId, Long userId) {
+        return this.filmStorage.addLike(filmId, userId);
     }
 
     public List<Film> getPopularFilms(Integer count) {

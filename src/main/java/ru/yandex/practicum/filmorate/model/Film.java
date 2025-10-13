@@ -3,18 +3,20 @@ package ru.yandex.practicum.filmorate.model;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import org.hibernate.validator.constraints.Length;
 import ru.yandex.practicum.filmorate.valid.MinReleaseDate;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 import static ru.yandex.practicum.filmorate.constant.Constant.dateTimeFormatString;
 
-@Data
-@Builder
+@Getter
+@Setter
+@Builder(toBuilder = true)
+@AllArgsConstructor
 @EqualsAndHashCode(of = {"id"})
 public class Film {
     private Long id;
@@ -27,4 +29,16 @@ public class Film {
     private LocalDate releaseDate;
     @Min(value = 0, message = "Продолжительность фильма должна быть положительным числом")
     private Integer duration;
+    private Set<Long> likes;
+    public Film() {
+        likes = new HashSet<>();
+    }
+
+    public boolean addLike(Long id) {
+        return likes.add(id);
+    }
+
+    public boolean removeLike(Long id) {
+        return likes.remove(id);
+    }
 }

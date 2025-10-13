@@ -10,17 +10,14 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    private final UserService userService;
-
     @Autowired
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
+    private UserService userService;
 
     @PostMapping
     public User create(@Valid @RequestBody User user) {
@@ -57,31 +54,25 @@ public class UserController {
     // Добавление пользователя в друзья
     @PutMapping("/{id}/friends/{friendId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void addFriend(@PathVariable Long id, @PathVariable Long friendId) {
-        userService.addFriend(id, friendId);
+    public User addFriend(@PathVariable Long id, @PathVariable Long friendId) {
+        return userService.addFriend(id, friendId);
     }
 
     // Удаление пользователя из друзей
     @DeleteMapping("/{id}/friends/{friendId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void removeFriend(@PathVariable Long id, @PathVariable Long friendId) {
-         userService.removeFriend(id, friendId);
+    public User removeFriend(@PathVariable Long id, @PathVariable Long friendId) {
+         return userService.removeFriend(id, friendId);
     }
 
     // Получение списка друзей пользователя
     @GetMapping("/{id}/friends")
-    public ResponseEntity<List<User>> getFriends(@PathVariable Long id) {
-        if (userService.getFriends(id).isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(userService.getFriends(id));
-        }
+    public ResponseEntity<Set<User>> getFriends(@PathVariable Long id) {
         return ResponseEntity.ok(userService.getFriends(id));
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
-    public ResponseEntity<List<User>> getCommonFriends(@PathVariable Long id, @PathVariable Long otherId) {
-        if (userService.getCommonFriends(id, otherId).isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(userService.getCommonFriends(id, otherId));
-        }
+    public ResponseEntity<Set<User>> getCommonFriends(@PathVariable Long id, @PathVariable Long otherId) {
         return ResponseEntity.ok(userService.getCommonFriends(id, otherId));
     }
 }

@@ -5,6 +5,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class UserService {
@@ -30,19 +31,19 @@ public class UserService {
         return userStorage.getUser(id);
     }
 
-    public void addFriend(Long userId, Long friendId) {
-         userStorage.addFriend(userId, friendId);
+    public User addFriend(Long userId, Long friendId) {
+         return userStorage.addFriend(userId, friendId);
     }
 
-    public void removeFriend(Long userId, Long friendId) {
-         userStorage.removeFriend(userId, friendId);
+    public User removeFriend(Long userId, Long friendId) {
+        return userStorage.removeFriend(userId, friendId);
     }
 
-    public List<User> getFriends(Long userId) {
+    public Set<User> getFriends(Long userId) {
         return userStorage.getFriends(userId);
     }
 
-    public List<User> getCommonFriends(Long id, Long otherId) {
+    public Set<User> getCommonFriends(Long id, Long otherId) {
         return userStorage.getCommonFriends(id, otherId);
     }
 }

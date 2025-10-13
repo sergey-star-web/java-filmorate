@@ -1,9 +1,12 @@
 package ru.yandex.practicum.filmorate.storage;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.LikeAddException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import lombok.extern.slf4j.Slf4j;
+import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -12,8 +15,12 @@ import java.util.stream.Collectors;
 @Slf4j
 public class InMemoryFilmStorage implements FilmStorage {
     private HashMap<Long, Film> films = new HashMap<>();
-    private Map<Long, Set<Long>> likes = new HashMap<>();
     private Long idCounter = 1L;
+
+    @Autowired
+    private FilmStorage filmStorage;
+    @Autowired
+    private UserStorage userStorage;
 
     public Film create(Film film) {
         log.info("Получен запрос на создание фильма: {}", film);
@@ -53,30 +60,51 @@ public class InMemoryFilmStorage implements FilmStorage {
         return film;
     }
 
-    public void addLike(Long filmId, Long userId) {
-        if (films.containsKey(filmId)) {
-            likes.computeIfAbsent(filmId, k -> new HashSet<>()).add(userId);
-        } else {
-            // Обработка случая, когда фильм не найден
-            throw new IllegalArgumentException("Фильм не найден");
+    public Film addLike(Long filmId, Long userId) {
+        Film film = filmStorage.getFilm(filmId);
+        User user = userStorage.getUser(userId);
+
+        if (film == null) {
+            throw new NotFoundException("Фильм с id " + filmId + " не найден");
         }
+        if (user == null) {
+            throw new NotFoundException("Пользователь с id " + userId + " не найден");
+        }
+        if (film.getLikes().contains(userId)) {
+            throw new LikeAddException("Пользователи с id " + userId + " уже добавил лайк посту с id  "
+                    + filmId);
+        }
+        film.addLike(userId);
+        log.info("Пользователь {} поставил лайк фильму {} ", userId, filmId);
+        return film;
     }
 
     // Метод для удаления лайка у фильма
-    public void removeLike(Long filmId, Long userId) {
-        likes.getOrDefault(filmId, new HashSet<>()).remove(userId);
+    public Film removeLike(Long filmId, Long userId) {
+        Film film = filmStorage.getFilm(filmId);
+        User user = userStorage.getUser(userId);
+
+        if (film == null) {
+            throw new NotFoundException("Фильм с id " + filmId + " не найден");
+        }
+        if (user == null) {
+            throw new NotFoundException("Пользователь с id " + userId + " не найден");
+        }
+        if (!film.getLikes().contains(userId)) {
+            throw new LikeAddException("Пользователи с id " + userId + " не добавлял лайк посту с id  "
+                    + filmId);
+        }
+        film.removeLike(userId);
+        log.info("Пользователь {} убрал лайк у фильма {} ", userId, filmId);
+        return film;
     }
 
     // Метод для получения списка популярных фильмов по количеству лайков
     public List<Film> getPopularFilms(Integer count) {
         // Пример реализации, где фильмы сортируются по количеству лайков и возвращаются первые 'count' фильмов
         return films.values().stream()
-                .sorted((f1, f2) -> Integer.compare(countLikes(f2.getId()), countLikes(f1.getId())))
+                .sorted(Comparator.comparingInt((Film f) -> f.getLikes().size()).reversed())
                 .limit(count)
                 .collect(Collectors.toList());
-    }
-
-    private int countLikes(Long filmId) {
-        return likes.getOrDefault(filmId, new HashSet<>()).size();
     }
 }
