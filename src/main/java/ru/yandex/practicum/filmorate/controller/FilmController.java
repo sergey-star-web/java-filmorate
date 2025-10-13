@@ -18,12 +18,6 @@ public class FilmController {
     @Autowired
     private FilmService filmService;
 
-    @DeleteMapping("/{id}/like/{userId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public Film removeLike(@PathVariable Long id, @PathVariable Long userId) {
-        return filmService.removeLike(id, userId);
-    }
-
     @GetMapping()
     public ResponseEntity<List<Film>> getfilms() {
         if (filmService.getAllFilms().isEmpty()) {
@@ -50,6 +44,12 @@ public class FilmController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Film addLike(@PathVariable Long id, @PathVariable Long userId) {
         return filmService.addLike(id, userId);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public Film removeLike(@PathVariable Long id, @PathVariable Long userId) {
+        return filmService.removeLike(id, userId);
     }
 
     @GetMapping("/popular")

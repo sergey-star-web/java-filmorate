@@ -31,7 +31,7 @@ public class FilmService {
     }
 
     public Film removeLike(Long filmId, Long userId) {
-        return this.filmStorage.addLike(filmId, userId);
+        return this.filmStorage.removeLike(filmId, userId);
     }
 
     public List<Film> getPopularFilms(Integer count) {
