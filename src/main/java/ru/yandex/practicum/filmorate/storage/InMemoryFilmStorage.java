@@ -19,6 +19,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Autowired
     private UserStorage userStorage;
 
+    @Override
     public Film createFilm(Film film) {
         log.info("Получен запрос на создание фильма: {}", film);
         film.setId(genNextId());
@@ -31,14 +32,17 @@ public class InMemoryFilmStorage implements FilmStorage {
         return idCounter++;
     }
 
+    @Override
     public List<Film> getFilms() {
         return new ArrayList<>(films.values());
     }
 
+    @Override
     public Film getFilm(Long id) {
         return films.get(id);
     }
 
+    @Override
     public Film updateFilm(Film updatedFilm) {
         Long id = updatedFilm.getId();
         if (id != null) {
@@ -57,6 +61,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         }
     }
 
+    @Override
     public Film addLike(Long filmId, Long userId) {
         Film film = films.get(filmId);
         User user = userStorage.getUser(userId);
@@ -76,7 +81,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         return film;
     }
 
-    // Метод для удаления лайка у фильма
+    @Override
     public Film removeLike(Long filmId, Long userId) {
         Film film = films.get(filmId);
         User user = userStorage.getUser(userId);
@@ -96,6 +101,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         return film;
     }
 
+    @Override
     // Метод для получения списка популярных фильмов по количеству лайков
     public List<Film> getPopularFilms(Integer count) {
         // Пример реализации, где фильмы сортируются по количеству лайков и возвращаются первые 'count' фильмов

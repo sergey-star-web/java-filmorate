@@ -15,6 +15,7 @@ public class InMemoryUserStorage implements UserStorage {
     private HashMap<Long, User> users = new HashMap<>();
     private Long idCounter = 1L;
 
+    @Override
     public User createUser(User user) {
         log.info("Получен запрос на создание пользователя: {}", user);
         user.setId(genNextId());
@@ -23,6 +24,7 @@ public class InMemoryUserStorage implements UserStorage {
         return user;
     }
 
+    @Override
     public User addFriend(Long userId, Long friendId) {
         User user = users.get(userId);
         User friend = users.get(friendId);
@@ -43,6 +45,7 @@ public class InMemoryUserStorage implements UserStorage {
         return user;
     }
 
+    @Override
     public User removeFriend(Long userId, Long friendId) {
         User user = users.get(userId);
         User friend = users.get(friendId);
@@ -63,6 +66,7 @@ public class InMemoryUserStorage implements UserStorage {
         return user;
     }
 
+    @Override
     public Set<User> getFriends(Long id) {
         User user = users.get(id);
 
@@ -75,6 +79,7 @@ public class InMemoryUserStorage implements UserStorage {
                 .collect(Collectors.toSet());
     }
 
+    @Override
     public Set<User> getCommonFriends(Long userId, Long otherId) {
         User user = users.get(userId);
         User otherUser = users.get(otherId);
@@ -96,14 +101,17 @@ public class InMemoryUserStorage implements UserStorage {
         return idCounter++;
     }
 
+    @Override
     public List<User> getUsers() {
         return new ArrayList<>(users.values());
     }
 
+    @Override
     public User getUser(Long id) {
         return users.get(id);
     }
 
+    @Override
     public User updateUser(User updateUser) {
         Long id = updateUser.getId();
         throwIfNoUser(id);
