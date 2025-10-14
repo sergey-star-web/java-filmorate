@@ -18,17 +18,14 @@ public class FilmController {
     @Autowired
     private FilmService filmService;
 
-    @GetMapping()
+    @GetMapping
     public ResponseEntity<List<Film>> getfilms() {
-        if (filmService.getAllFilms().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(filmService.getAllFilms());
-        }
         return ResponseEntity.ok(filmService.getAllFilms());
     }
 
     @PostMapping
-    public Film create(@Valid @RequestBody Film film) {
-        return filmService.createFilm(film);
+    public ResponseEntity<Film> create(@Valid @RequestBody Film film) {
+        return ResponseEntity.ok(filmService.createFilm(film));
     }
 
     @PutMapping
@@ -41,19 +38,19 @@ public class FilmController {
     }
 
     @PutMapping("/{id}/like/{userId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public Film addLike(@PathVariable Long id, @PathVariable Long userId) {
-        return filmService.addLike(id, userId);
+    public ResponseEntity<Film> addLike(@PathVariable Long id, @PathVariable Long userId) {
+        filmService.addLike(id, userId);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public Film removeLike(@PathVariable Long id, @PathVariable Long userId) {
-        return filmService.removeLike(id, userId);
+    public ResponseEntity<Film> removeLike(@PathVariable Long id, @PathVariable Long userId) {
+        filmService.removeLike(id, userId);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/popular")
-    public List<Film> getPopularFilms(@RequestParam(defaultValue = "10") Integer count) {
-        return filmService.getPopularFilms(count);
+    public ResponseEntity<List<Film>> getPopularFilms(@RequestParam(defaultValue = "10") Integer count) {
+        return ResponseEntity.ok(filmService.getPopularFilms(count));
     }
 }

@@ -16,13 +16,10 @@ import java.util.stream.Collectors;
 public class InMemoryFilmStorage implements FilmStorage {
     private HashMap<Long, Film> films = new HashMap<>();
     private Long idCounter = 1L;
-
-    @Autowired
-    private FilmStorage filmStorage;
     @Autowired
     private UserStorage userStorage;
 
-    public Film create(Film film) {
+    public Film createFilm(Film film) {
         log.info("Получен запрос на создание фильма: {}", film);
         film.setId(genNextId());
         films.put(film.getId(), film);
@@ -42,26 +39,26 @@ public class InMemoryFilmStorage implements FilmStorage {
         return films.get(id);
     }
 
-    public Film update(Film updatedFilm) {
+    public Film updateFilm(Film updatedFilm) {
         Long id = updatedFilm.getId();
-        isNullFilm(id);
+        if (id != null) {
+            throwIfNoFilm(id);
+        }
         films.put(updatedFilm.getId(), updatedFilm);
         log.info("Фильм успешно обновлен. Измененный фильм: {}", updatedFilm);
         return updatedFilm;
     }
 
-    private Film isNullFilm(Long id) {
-        Film film = films.get(id);
-        if (film == null) {
+    private void throwIfNoFilm(Long id) {
+        if (!films.containsKey(id)) {
             String errorMessage = String.format("Не найден фильм с %d", id);
             log.warn(errorMessage);
             throw new NotFoundException(errorMessage);
         }
-        return film;
     }
 
     public Film addLike(Long filmId, Long userId) {
-        Film film = filmStorage.getFilm(filmId);
+        Film film = films.get(filmId);
         User user = userStorage.getUser(userId);
 
         if (film == null) {
@@ -81,7 +78,7 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     // Метод для удаления лайка у фильма
     public Film removeLike(Long filmId, Long userId) {
-        Film film = filmStorage.getFilm(filmId);
+        Film film = films.get(filmId);
         User user = userStorage.getUser(userId);
 
         if (film == null) {

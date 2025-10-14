@@ -20,15 +20,12 @@ public class UserController {
     private UserService userService;
 
     @PostMapping
-    public User create(@Valid @RequestBody User user) {
-        return userService.createUser(user);
+    public ResponseEntity<User> create(@Valid @RequestBody User user) {
+        return ResponseEntity.ok(userService.createUser(user));
     }
 
-    @GetMapping()
+    @GetMapping
     public ResponseEntity<List<User>> getUsers() {
-        if (userService.getUsers().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(userService.getUsers());
-        }
         return ResponseEntity.ok(userService.getUsers());
     }
 
@@ -44,25 +41,21 @@ public class UserController {
     // Получение пользователя по идентификатору
     @GetMapping("/{id}")
     public ResponseEntity<User> getUser(@PathVariable Long id) {
-        User user = userService.getUser(id);
-        if (user == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(user);
+        return ResponseEntity.ok(userService.getUser(id));
     }
 
     // Добавление пользователя в друзья
     @PutMapping("/{id}/friends/{friendId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public User addFriend(@PathVariable Long id, @PathVariable Long friendId) {
-        return userService.addFriend(id, friendId);
+    public ResponseEntity<User> addFriend(@PathVariable Long id, @PathVariable Long friendId) {
+        userService.addFriend(id, friendId);
+        return ResponseEntity.noContent().build();
     }
 
     // Удаление пользователя из друзей
     @DeleteMapping("/{id}/friends/{friendId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public User removeFriend(@PathVariable Long id, @PathVariable Long friendId) {
-         return userService.removeFriend(id, friendId);
+    public ResponseEntity<User> removeFriend(@PathVariable Long id, @PathVariable Long friendId) {
+        userService.removeFriend(id, friendId);
+        return ResponseEntity.noContent().build();
     }
 
     // Получение списка друзей пользователя

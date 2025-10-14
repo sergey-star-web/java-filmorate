@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.FriendsAddException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -15,10 +14,8 @@ import java.util.stream.Collectors;
 public class InMemoryUserStorage implements UserStorage {
     private HashMap<Long, User> users = new HashMap<>();
     private Long idCounter = 1L;
-    @Autowired
-    UserStorage userStorage;
 
-    public User create(User user) {
+    public User createUser(User user) {
         log.info("Получен запрос на создание пользователя: {}", user);
         user.setId(genNextId());
         users.put(user.getId(), user);
@@ -27,8 +24,8 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     public User addFriend(Long userId, Long friendId) {
-        User user = userStorage.getUser(userId);
-        User friend = userStorage.getUser(friendId);
+        User user = users.get(userId);
+        User friend = users.get(friendId);
 
         if (user == null) {
             throw new NotFoundException("Пользователь с id " + userId + " не найдено");
@@ -47,8 +44,8 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     public User removeFriend(Long userId, Long friendId) {
-        User user = userStorage.getUser(userId);
-        User friend = userStorage.getUser(friendId);
+        User user = users.get(userId);
+        User friend = users.get(friendId);
 
         if (user == null) {
             throw new NotFoundException("Пользователь с id " + userId + " не найдено");
@@ -67,20 +64,20 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     public Set<User> getFriends(Long id) {
-        User user = userStorage.getUser(id);
+        User user = users.get(id);
 
         if (user == null) {
             throw new NotFoundException("Пользователь с id " + id + " не найден");
         }
         return user.getFriends().stream()
-                .map(userStorage::getUser)
+                .map(users::get)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
 
     public Set<User> getCommonFriends(Long userId, Long otherId) {
-        User user = userStorage.getUser(userId);
-        User otherUser = userStorage.getUser(otherId);
+        User user = users.get(userId);
+        User otherUser = users.get(otherId);
 
         if (user == null) {
             throw new NotFoundException("Пользователь с id " + userId + " не найден");
@@ -91,7 +88,7 @@ public class InMemoryUserStorage implements UserStorage {
         Set<Long> commonFriendIds = new HashSet<>(user.getFriends());
         commonFriendIds.retainAll(otherUser.getFriends());
         return commonFriendIds.stream()
-                .map(userStorage::getUser)
+                .map(users::get)
                 .collect(Collectors.toSet());
     }
 
@@ -107,15 +104,15 @@ public class InMemoryUserStorage implements UserStorage {
         return users.get(id);
     }
 
-    public User update(User updateUser) {
+    public User updateUser(User updateUser) {
         Long id = updateUser.getId();
-        isNullUser(id);
+        throwIfNoUser(id);
         users.put(updateUser.getId(), updateUser);
-        log.warn("Пользователь успешно обновлен. Измененный пользователь: {}", updateUser);
+        log.info("Пользователь успешно обновлен. Измененный пользователь: {}", updateUser);
         return updateUser;
     }
 
-    private void isNullUser(Long id) {
+    private void throwIfNoUser(Long id) {
         User user = users.get(id);
         if (user == null) {
             String errorMessage = String.format("Не найден пользователь с %d", id);
