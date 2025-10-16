@@ -4,18 +4,19 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.*;
 import ru.yandex.practicum.filmorate.valid.IsOverNowDate;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 import static ru.yandex.practicum.filmorate.constant.Constant.dateTimeFormatString;
 
-@Data
-@Builder
+@Getter
+@Setter
+@AllArgsConstructor
+@Builder(toBuilder = true)
 @EqualsAndHashCode(of = {"id"})
 public class User {
     private Long id;
@@ -30,11 +31,24 @@ public class User {
     @JsonFormat(pattern = dateTimeFormatString)
     @IsOverNowDate
     private LocalDate birthday;
+    private Set<Long> friends;
 
     public String getName() {
         if (name == null) {
             return this.login;
         }
         return this.name;
+    }
+
+    public User() {
+        friends = new HashSet<>();
+    }
+
+    public boolean addFriend(Long id) {
+        return friends.add(id);
+    }
+
+    public boolean deleteFriend(Long id) {
+        return friends.remove(id);
     }
 }
