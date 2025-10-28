@@ -8,8 +8,8 @@ import lombok.*;
 import ru.yandex.practicum.filmorate.valid.IsOverNowDate;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 import static ru.yandex.practicum.filmorate.constant.Constant.dateTimeFormatString;
 
@@ -31,7 +31,7 @@ public class User {
     @JsonFormat(pattern = dateTimeFormatString)
     @IsOverNowDate
     private LocalDate birthday;
-    private Set<Long> friends;
+    private Map<Long, FriendStatus> friends;
 
     public String getName() {
         if (name == null) {
@@ -41,14 +41,14 @@ public class User {
     }
 
     public User() {
-        friends = new HashSet<>();
+        friends = new HashMap<>();
     }
 
-    public boolean addFriend(Long id) {
-        return friends.add(id);
+    public void addFriend(Long id) {
+        friends.put(id, FriendStatus.UNCONFIRMED);
     }
 
-    public boolean deleteFriend(Long id) {
-        return friends.remove(id);
+    public void deleteFriend(Long id) {
+        friends.remove(id);
     }
 }

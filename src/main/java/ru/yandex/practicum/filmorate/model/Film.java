@@ -30,6 +30,8 @@ public class Film {
     @Min(value = 0, message = "Продолжительность фильма должна быть положительным числом")
     private Integer duration;
     private Set<Long> likes;
+    private Set<Genre> genres;
+    private MpaRating mpaRating;
 
     public Film() {
         likes = new HashSet<>();
@@ -41,5 +43,13 @@ public class Film {
 
     public boolean removeLike(Long id) {
         return likes.remove(id);
+    }
+
+    public boolean addGenre(Genre genre) {
+        return genres.add(genre);
+    }
+
+    public boolean removeGenre(Genre genre) {
+        return genres.remove(genre);
     }
 }
