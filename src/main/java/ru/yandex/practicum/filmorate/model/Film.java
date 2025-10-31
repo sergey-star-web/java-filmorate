@@ -29,12 +29,13 @@ public class Film {
     private LocalDate releaseDate;
     @Min(value = 0, message = "Продолжительность фильма должна быть положительным числом")
     private Integer duration;
+    private MpaRating mpaRating;
     private Set<Long> likes;
     private Set<Genre> genres;
-    private MpaRating mpaRating;
 
     public Film() {
         likes = new HashSet<>();
+        genres = new HashSet<>();
     }
 
     public boolean addLike(Long id) {
