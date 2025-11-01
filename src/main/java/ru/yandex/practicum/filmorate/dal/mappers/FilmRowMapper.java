@@ -4,57 +4,43 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.constant.Constant;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.MpaRating;
 
-import java.sql.Array;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAccessor;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Component
 public class FilmRowMapper implements RowMapper<Film> {
-    private String FIND_BY_ID_LIKES_QUERY = "SELECT id FROM likes WHERE film_id = ?";
+    private final String FIND_BY_ID_LIKES_QUERY = "SELECT id FROM likes WHERE film_id = ?";
+    private final String FIND_BY_ID_GENRES_QUERY = "SELECT g.const FROM GENRES_IN_FILM AS gif \n" +
+            "INNER JOIN GENRES AS g ON g.ID = gif.GENRE_ID where gif.FILM_ID = ?";
     @Autowired
     private JdbcTemplate jdbc;
 
     @Override
     public Film mapRow(ResultSet resultSet, int rowNum) throws SQLException {
         Film film = new Film();
-        film.setId(resultSet.getLong("ID"));
-        film.setName(resultSet.getString("NAME"));
-        film.setDescription(resultSet.getString("DESCRIPTION"));
-        LocalDate releaseDate = resultSet.getTimestamp("RELEASEDATE").toLocalDateTime().toLocalDate();
-        film.setReleaseDate(LocalDate.from((TemporalAccessor) releaseDate));
-        film.setDuration(resultSet.getInt("DURATION"));
-        MpaRating mpaRating = Constant.getMpaRatingById(resultSet.getInt("MPA_RATING_ID"));
-        film.setMpaRating(mpaRating);
+        List<Genre> genres = new ArrayList<>();
 
+        film.setId(resultSet.getLong("id"));
+        film.setName(resultSet.getString("name"));
+        film.setDescription(resultSet.getString("description"));
+        LocalDate releaseDate = resultSet.getTimestamp("releaseDate").toLocalDateTime().toLocalDate();
+        film.setReleaseDate(LocalDate.from((TemporalAccessor) releaseDate));
+        film.setDuration(resultSet.getInt("duration"));
+        //film.setMpaRating(MpaRating.valueOf(resultSet.getString("mpa")));
         List<Long> likes = jdbc.query(FIND_BY_ID_LIKES_QUERY, (rs, rn) -> rs.getLong(1), film.getId());
         film.setLikes(new HashSet<>(likes));
-
-        //Set<Long> genresIds = new HashSet<>();
-        //Array genresArray = resultSet.getArray("genres");
-        //if (genresArray != null) {
-        //    Object arrayObj = genresArray.getArray();
-        //    Long[] genresLongArray = (Long[]) arrayObj;
-        //    genresIds = new HashSet<>(Arrays.asList(genresLongArray));
-        //}
-        //Set<Genre> genres = new HashSet<>();
-        //for (Long genreId : genresIds) {
-        //    Genre genre =  Constant.getGenreById(genreId);
+        //List<String> queryResults = jdbc.query(FIND_BY_ID_GENRES_QUERY, new Object[]{film.getId()}, (rs, rn) -> rs.getString("const"));
+        //for (String genreConst : queryResults) {
+        //    Genre genre = Genre.valueOf(genreConst);
         //    genres.add(genre);
         //}
-        //film.setGenres(genres);
-
+        //film.setGenres(new HashSet<>(genres));
         return film;
     }
 }

@@ -5,6 +5,6 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class Genre {
+public class Mpa {
     private Integer id;
 }

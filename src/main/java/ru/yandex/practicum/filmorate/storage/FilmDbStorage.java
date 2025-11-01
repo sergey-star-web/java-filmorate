@@ -22,8 +22,11 @@ import static ru.yandex.practicum.filmorate.constant.Constant.formatter;
 @Slf4j
 @Repository
 public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
-    private static final String FIND_ALL_QUERY = "SELECT * FROM films";
+    private static final String FIND_ALL_QUERY = "SELECT f.*, mr.name as mpa FROM films as f " +
+            "inner join mpa_rating as mr ON mr.ID = f.MPA_RATING_ID";
     private static final String FIND_BY_ID_QUERY = "SELECT * FROM PUBLIC.films WHERE id = ?";
+    private static final String INSERT_FILM_QUERY = "INSERT INTO films(id, name, description, releaseDate, duration)" +
+            "VALUES (?, ?, ?, ?, ?)";
     private HashMap<Long, Film> films = new HashMap<>();
     private Long idCounter = 1L;
     @Autowired
@@ -46,7 +49,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         RowMapper<Integer> longMapper = (rs, rowNum) -> rs.getInt(1);
         System.out.println("AAAA3: " + jdbc.query(FIND_BY_ID_LIKES_QUERY, longMapper).size());
         List<Integer> likes = jdbc.query(FIND_BY_ID_LIKES_QUERY, longMapper);
-        System.out.println(likes);
+        System.out.println(likes + ":  " +  FIND_ALL_QUERY);
         return findMany(FIND_ALL_QUERY);
     }
 
@@ -59,8 +62,16 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     @Override
     public Film createFilm(Film film) {
         log.info("Получен запрос на создание фильма: {}", film);
-        film.setId(genNextId());
-        films.put(film.getId(), film);
+        Long id = jdbc.queryForObject("SELECT NEXT VALUE FOR film_id_seq", Long.class);
+        film.setId(id);
+        insert(INSERT_FILM_QUERY,
+                film.getId(),
+                film.getName(),
+                film.getDescription(),
+                film.getReleaseDate(),
+                film.getDuration()
+                //film.getMpaRating()
+                );
         log.info("Фильм успешно создан. Созданный фильм: {}", film);
         return film;
     }

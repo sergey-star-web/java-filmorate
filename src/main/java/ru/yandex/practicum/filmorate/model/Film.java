@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.valid.MinReleaseDate;
 
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static ru.yandex.practicum.filmorate.constant.Constant.dateTimeFormatString;
@@ -29,13 +30,12 @@ public class Film {
     private LocalDate releaseDate;
     @Min(value = 0, message = "Продолжительность фильма должна быть положительным числом")
     private Integer duration;
-    private MpaRating mpaRating;
+    private Mpa mpa;
     private Set<Long> likes;
-    private Set<Genre> genres;
+    private List<Genre> genres;
 
     public Film() {
         likes = new HashSet<>();
-        genres = new HashSet<>();
     }
 
     public boolean addLike(Long id) {
