@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.LikeAddException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -17,6 +18,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     private HashMap<Long, Film> films = new HashMap<>();
     private Long idCounter = 1L;
     @Autowired
+    @Qualifier("inMemoryUserStorage")
     private UserStorage userStorage;
 
     @Override

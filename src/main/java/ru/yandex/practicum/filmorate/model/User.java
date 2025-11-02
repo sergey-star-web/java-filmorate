@@ -45,7 +45,7 @@ public class User {
     }
 
     public void addFriend(Long id) {
-        friends.put(id, FriendStatus.UNCONFIRMED);
+        friends.put(id, FriendStatus.CONFIRMED);
     }
 
     public void deleteFriend(Long id) {

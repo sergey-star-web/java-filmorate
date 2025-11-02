@@ -22,14 +22,14 @@ WHERE NOT EXISTS (SELECT 1 FROM MPA_RATING WHERE name = 'G');
 INSERT INTO MPA_RATING (name, description) SELECT 'PG', 'детям рекомендуется смотреть фильм с родителями'
 WHERE NOT EXISTS (SELECT 1 FROM MPA_RATING WHERE name = 'PG');
 
-INSERT INTO MPA_RATING (name, description) SELECT 'PG13', 'детям до 13 лет просмотр не желателен'
-WHERE NOT EXISTS (SELECT 1 FROM MPA_RATING WHERE name = 'PG13');
+INSERT INTO MPA_RATING (name, description) SELECT 'PG-13', 'детям до 13 лет просмотр не желателен'
+WHERE NOT EXISTS (SELECT 1 FROM MPA_RATING WHERE name = 'PG-13');
 
 INSERT INTO MPA_RATING (name, description) SELECT 'R', 'лицам до 17 лет просматривать фильм можно только в присутствии взрослого'
 WHERE NOT EXISTS (SELECT 1 FROM MPA_RATING WHERE name = 'R');
 
-INSERT INTO MPA_RATING (name, description) SELECT 'NC17', 'лицам до 18 лет просмотр запрещён'
-WHERE NOT EXISTS (SELECT 1 FROM MPA_RATING WHERE name = 'NC17');
+INSERT INTO MPA_RATING (name, description) SELECT 'NC-17', 'лицам до 18 лет просмотр запрещён'
+WHERE NOT EXISTS (SELECT 1 FROM MPA_RATING WHERE name = 'NC-17');
 
 INSERT INTO films (name, description, releaseDate, duration, mpa_rating_id)
 SELECT 'Harry Potter', 'asgsdgsg', '2010-02-15', 90, 3

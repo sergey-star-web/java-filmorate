@@ -4,13 +4,22 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+
+import jakarta.servlet.ServletException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.GenreDbStorage;
+import ru.yandex.practicum.filmorate.storage.MpaDbStorage;
 
 import java.util.List;
+import java.util.Optional;
 
 @RequestMapping("/films")
 @Slf4j
@@ -19,6 +28,10 @@ public class FilmController {
 
     @Autowired
     private FilmService filmService;
+    @Autowired
+    private MpaDbStorage mpaDbStorage;
+    @Autowired
+    GenreDbStorage genreDbStorage;
 
     @GetMapping
     public ResponseEntity<List<Film>> getfilms() {
@@ -26,8 +39,25 @@ public class FilmController {
     }
 
     @PostMapping
-    public ResponseEntity<Film> create(@Valid @RequestBody Film film) {
-        return ResponseEntity.ok(filmService.createFilm(film));
+    public Film create(@Valid @RequestBody Film film) {
+        log.info("Получен запрос на создание фильма: {}", film);
+        // Проверка существования рейтинга Mpa
+        Integer mpaId = film.getMpa().getId();
+        if (!mpaDbStorage.exists(mpaId)) {
+            String errorMessage = String.format("Не найден рейтинг с ID %d", mpaId);
+            log.warn(errorMessage);
+            throw new NotFoundException();
+        }
+        // Проверка существования жанра
+        for (Genre genre : film.getGenres()) {
+            Integer genreId = genre.getId();
+            if (!genreDbStorage.exists(genreId)) {
+                String errorMessage = String.format("Не найден жанр с ID %d", genreId);
+                log.warn(errorMessage);
+                throw new NotFoundException();
+            }
+        }
+        return filmService.createFilm(film);
     }
 
     @PutMapping
