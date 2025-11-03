@@ -14,7 +14,6 @@ import java.util.List;
 public class FilmService {
     @Autowired
     @Qualifier("filmDbStorage")
-    //@Qualifier("inMemoryFilmStorage")
     private FilmStorage filmStorage;
 
     public Film createFilm(Film film) {

@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.dal.mappers;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -15,15 +16,16 @@ import java.time.LocalDate;
 import java.time.temporal.TemporalAccessor;
 import java.util.*;
 
+@Slf4j
 @Component
 public class FilmRowMapper implements RowMapper<Film> {
     private final String FIND_BY_ID_LIKES_QUERY = "SELECT id FROM likes WHERE film_id = ?";
-    private final String FIND_BY_ID_GENRES_QUERY = "SELECT g.id, g.name FROM GENRES_IN_FILM AS gif \n" +
-            "INNER JOIN GENRES AS g ON g.ID = gif.GENRE_ID where gif.FILM_ID = ?";
+    private final String FIND_BY_ID_GENRES_QUERY = "SELECT DISTINCT g.id, g.name FROM GENRES_IN_FILM AS gif \n" +
+            "INNER JOIN GENRES AS g ON g.ID = gif.GENRE_ID where gif.FILM_ID = ? ORDER BY g.id ASC";
     @Autowired
     private JdbcTemplate jdbc;
     @Autowired
-    MpaDbStorage mpaDbStorage;
+    private MpaDbStorage mpaDbStorage;
 
     @Override
     public Film mapRow(ResultSet resultSet, int rowNum) throws SQLException {
@@ -39,8 +41,13 @@ public class FilmRowMapper implements RowMapper<Film> {
         film.setMpa(mpa);
         List<Long> likes = jdbc.query(FIND_BY_ID_LIKES_QUERY, (rs, rn) -> rs.getLong(1), film.getId());
         film.setLikes(new HashSet<>(likes));
-        List<Genre> genres = jdbc.query(FIND_BY_ID_GENRES_QUERY, new GenreRowMapper(), film.getId());
-        film.setGenres(genres);
+        Optional<List<Genre>> genres = Optional.of(jdbc.query(FIND_BY_ID_GENRES_QUERY, new GenreRowMapper(), film.getId()));
+        if (!genres.get().isEmpty()) {
+            List<Genre> genreList = genres.get();
+            film.setGenres(genreList);
+        } else {
+            log.warn("Для фильма с ID {} жанры не найдены", film.getId());
+        }
         return film;
     }
 }

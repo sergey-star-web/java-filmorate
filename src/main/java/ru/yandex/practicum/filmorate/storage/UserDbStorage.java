@@ -2,18 +2,15 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dal.BaseRepository;
 import ru.yandex.practicum.filmorate.dal.mappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.exception.FriendsAddException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -23,12 +20,11 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
     private final String INSERT_USER_QUERY = "INSERT INTO users(id, email, login, name, birthday)" +
             "VALUES (?, ?, ?, ?, ?)";
     private final String UPDATE_QUERY = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? WHERE id = ?";
-    private HashMap<Long, User> users = new HashMap<>();
-    private Long idCounter = 1L;
-    @Autowired
-    MpaDbStorage mpaDbStorage;
-    @Autowired
-    GenreDbStorage genreDbStorage;
+    private final String INSERT_FRIENDS_QUERY = "INSERT INTO friends(user_send_id, user_received_id, " +
+            "confirm_friendship_status) values (?, ?, true)";
+    private final String FIND_BY_ALL_FRIENDS_QUERY = "select u.* from users as u inner join friends as f " +
+            "on u.id = f.user_received_id where f.user_send_id = ?";
+    private final String DELETE_FRIENDS_QUERY = "DELETE FROM friends WHERE user_send_id = ? AND user_received_id = ?";
     @Autowired
     private JdbcTemplate jdbc;
 
@@ -55,28 +51,7 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
     @Override
     public User addFriend(Long userId, Long friendId) {
         User user = getUser(userId);
-        //User friend = users.get(friendId);
-
-        if (user == null) {
-            throw new NotFoundException("Пользователь с id " + userId + " не найдено");
-        }
-        //if (friend == null) {
-        //    throw new NotFoundException("Пользователь с id " + friendId + " не найдено");
-        //}
-        //if (user.getFriends().containsKey(friendId) || friend.getFriends().containsKey(userId)) {
-        //    throw new FriendsAddException("Пользователи с id " + userId + " и " + friendId +
-        //            " уже в друзьях друг у друга");
-        //}
-        user.addFriend(friendId);
-        //friend.addFriend(userId);
-        log.info("Пользователь {} добавил в друзья пользователя {} ", userId, friendId);
-        return user;
-    }
-
-    @Override
-    public User removeFriend(Long userId, Long friendId) {
-        User user = users.get(userId);
-        User friend = users.get(friendId);
+        User friend = getUser(friendId);
 
         if (user == null) {
             throw new NotFoundException("Пользователь с id " + userId + " не найдено");
@@ -84,27 +59,50 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
         if (friend == null) {
             throw new NotFoundException("Пользователь с id " + friendId + " не найдено");
         }
-        if (!user.getFriends().containsKey(friendId) || !friend.getFriends().containsKey(userId)) {
+        if (user.getFriends().containsKey(friendId) || friend.getFriends().containsKey(userId)) {
+            throw new FriendsAddException("Пользователи с id " + userId + " и " + friendId +
+                    " уже в друзьях друг у друга");
+        }
+        insert(INSERT_FRIENDS_QUERY,
+                user.getId(),
+                friend.getId()
+        );
+        log.info("Пользователь {} добавил в друзья пользователя {} ", userId, friendId);
+        return user;
+    }
+
+    @Override
+    public User removeFriend(Long userId, Long friendId) {
+        User user = getUser(userId);
+        User friend = getUser(friendId);
+
+        if (user == null) {
+            throw new NotFoundException("Пользователь с id " + userId + " не найдено");
+        }
+        if (friend == null) {
+            throw new NotFoundException("Пользователь с id " + friendId + " не найдено");
+        }
+        if (!getFriends(userId).contains(friend)) {
             log.info("Попытка удалить несуществующую дружбу между {} и {}", userId, friendId);
             return user;
         }
-        user.deleteFriend(friendId);
-        friend.deleteFriend(userId);
+        update(DELETE_FRIENDS_QUERY,
+                userId,
+                friendId
+        );
         log.info("Пользователь {} удалил из друзей пользователя {}", userId, friendId);
         return user;
     }
 
     @Override
     public Set<User> getFriends(Long id) {
-        User user = users.get(id);
+        User user = getUser(id);
 
         if (user == null) {
             throw new NotFoundException("Пользователь с id " + id + " не найден");
         }
-        return user.getFriends().keySet().stream()
-                .map(users::get)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
+        List<User> friends = jdbc.query(FIND_BY_ALL_FRIENDS_QUERY, new UserRowMapper(), id);
+        return new HashSet<>(friends);
     }
 
     @Override
@@ -118,11 +116,10 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
         if (otherUser == null) {
             throw new NotFoundException("Пользователь с id " + otherId + " не найден");
         }
-        Set<Long> commonFriendIds = new HashSet<>(user.getFriends().keySet());
-        commonFriendIds.retainAll(otherUser.getFriends().keySet());
-        return commonFriendIds.stream()
-                .map(users::get)
-                .collect(Collectors.toSet());
+        Set<User> friendUser = getFriends(userId);
+        Set<User> friendOtherUser = getFriends(otherId);
+        friendUser.retainAll(friendOtherUser);
+        return friendUser;
     }
 
     @Override

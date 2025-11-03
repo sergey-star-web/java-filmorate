@@ -2,9 +2,7 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dal.BaseRepository;
 import ru.yandex.practicum.filmorate.dal.mappers.FilmRowMapper;
@@ -20,21 +18,15 @@ import java.util.*;
 public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     private final String FIND_ALL_QUERY = "SELECT * FROM films";
     private final String FIND_BY_ID_QUERY = "SELECT * FROM PUBLIC.films WHERE id = ?";
-    private final String INSERT_FILM_QUERY = "INSERT INTO films(id, name, description, releaseDate, duration, mpa_rating_id)" +
+    private final String INSERT_FILM_QUERY = "INSERT INTO films(id, name, description, releaseDate, " +
+            "duration, mpa_rating_id)" +
             "VALUES (?, ?, ?, ?, ?, ?)";
     private final String INSERT_LIKES_QUERY = "INSERT INTO likes(film_id, user_id) values (?, ?)";
-    private final String UPDATE_QUERY = "UPDATE films SET name = ?, description = ?, releaseDate = ?, duration = ?, mpa_rating_id = ? WHERE id = ?";
+    private final String UPDATE_QUERY = "UPDATE films SET name = ?, description = ?, releaseDate = ?, duration = ?, " +
+            "mpa_rating_id = ? WHERE id = ?";
     private final String DELETE_LIKES_QUERY = "DELETE FROM likes WHERE film_id = ? AND user_id = ?";
-
     @Autowired
-    MpaDbStorage mpaDbStorage;
-    @Autowired
-    GenreDbStorage genreDbStorage;
-
-    @Autowired
-    @Qualifier("inMemoryUserStorage")
-    private UserStorage userStorage;
-
+    private GenreDbStorage genreDbStorage;
     @Autowired
     private JdbcTemplate jdbc;
 
@@ -44,14 +36,6 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
     @Override
     public List<Film> getFilms() {
-        String FIND_BY_ID_LIKES_QUERY = "SELECT id FROM likes WHERE film_id = ";
-        System.out.println("AAAA1: ");
-        FIND_BY_ID_LIKES_QUERY = FIND_BY_ID_LIKES_QUERY + 2;
-        System.out.println("AAAA2: " + FIND_BY_ID_LIKES_QUERY);
-        RowMapper<Integer> longMapper = (rs, rowNum) -> rs.getInt(1);
-        System.out.println("AAAA3: " + jdbc.query(FIND_BY_ID_LIKES_QUERY, longMapper).size());
-        List<Integer> likes = jdbc.query(FIND_BY_ID_LIKES_QUERY, longMapper);
-        System.out.println(likes + ":  " +  FIND_ALL_QUERY);
         return findMany(FIND_ALL_QUERY);
     }
 
@@ -66,8 +50,6 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         log.info("Получен запрос на создание фильма: {}", film);
         Long id = jdbc.queryForObject("SELECT NEXT VALUE FOR film_id_seq", Long.class);
         film.setId(id);
-        System.out.println("AAAA mpa: " + film.getMpa().getId());
-        System.out.println("AAAA mpa222: " + mpaDbStorage.exists(film.getMpa().getId()));
         for (Genre genre : film.getGenres()) {
             genreDbStorage.saveGenresInFilm(id, genre.getId());
         }
@@ -102,14 +84,10 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     @Override
     public Film addLike(Long filmId, Long userId) {
         Film film = getFilm(filmId);
-        //User user = userStorage.getUser(userId);
 
         if (film == null) {
             throw new NotFoundException("Фильм с id " + filmId + " не найден");
         }
-        //if (user == null) {
-        //    throw new NotFoundException("Пользователь с id " + userId + " не найден");
-        //}
         if (film.getLikes().contains(userId)) {
             throw new LikeAddException("Пользователи с id " + userId + " уже добавил лайк посту с id  "
                     + filmId);
@@ -125,18 +103,10 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     @Override
     public Film removeLike(Long filmId, Long userId) {
         Film film = getFilm(filmId);
-        //User user = userStorage.getUser(userId);
 
         if (film == null) {
             throw new NotFoundException("Фильм с id " + filmId + " не найден");
         }
-        //if (user == null) {
-        //    throw new NotFoundException("Пользователь с id " + userId + " не найден");
-        //}
-        //if (!film.getLikes().contains(userId)) {
-        //    throw new LikeAddException("Пользователи с id " + userId + " не добавлял лайк посту с id  "
-        //            + filmId);
-        //}
         update(DELETE_LIKES_QUERY,
                 filmId,
                 userId

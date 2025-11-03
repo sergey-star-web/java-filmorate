@@ -3,13 +3,9 @@ package ru.yandex.practicum.filmorate.controller;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 
-import jakarta.servlet.ServletException;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -19,23 +15,26 @@ import ru.yandex.practicum.filmorate.storage.GenreDbStorage;
 import ru.yandex.practicum.filmorate.storage.MpaDbStorage;
 
 import java.util.List;
-import java.util.Optional;
 
 @RequestMapping("/films")
 @Slf4j
 @RestController
 public class FilmController {
-
     @Autowired
     private FilmService filmService;
     @Autowired
     private MpaDbStorage mpaDbStorage;
     @Autowired
-    GenreDbStorage genreDbStorage;
+    private GenreDbStorage genreDbStorage;
 
     @GetMapping
-    public ResponseEntity<List<Film>> getfilms() {
+    public ResponseEntity<List<Film>> getFilms() {
         return ResponseEntity.ok(filmService.getAllFilms());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Film> getFilm(@PathVariable Long id) {
+        return ResponseEntity.ok(filmService.getFilm(id));
     }
 
     @PostMapping

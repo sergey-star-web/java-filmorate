@@ -8,6 +8,7 @@ import org.hibernate.validator.constraints.Length;
 import ru.yandex.practicum.filmorate.valid.MinReleaseDate;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -36,6 +37,7 @@ public class Film {
 
     public Film() {
         likes = new HashSet<>();
+        genres = new ArrayList<>();
     }
 
     public boolean addLike(Long id) {
