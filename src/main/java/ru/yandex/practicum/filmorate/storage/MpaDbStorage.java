@@ -14,7 +14,6 @@ import java.util.Optional;
 @Slf4j
 @Repository
 public class MpaDbStorage extends BaseRepository<Mpa> implements MpaStorage {
-    private final String findAllQuery = "SELECT * FROM mpa_rating";
     private final String findByIdQuery = "SELECT * FROM mpa_rating WHERE id = ?";
 
     public MpaDbStorage(JdbcTemplate jdbc, MpaRowMapper mapper) {
@@ -36,6 +35,7 @@ public class MpaDbStorage extends BaseRepository<Mpa> implements MpaStorage {
     }
 
     public List<Mpa> getAllMpa() {
+        String findAllQuery = "SELECT * FROM mpa_rating";
         return findMany(findAllQuery);
     }
 }

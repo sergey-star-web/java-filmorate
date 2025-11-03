@@ -16,15 +16,6 @@ import java.util.*;
 @Slf4j
 @Repository
 public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
-    private final String findAllQuery = "SELECT * FROM films";
-    private final String findByIdQuery = "SELECT * FROM PUBLIC.films WHERE id = ?";
-    private final String insertFilmQuery = "INSERT INTO films(id, name, description, releaseDate, " +
-            "duration, mpa_rating_id)" +
-            "VALUES (?, ?, ?, ?, ?, ?)";
-    private final String insertLikesQuery = "INSERT INTO likes(film_id, user_id) values (?, ?)";
-    private final String updateQuery = "UPDATE films SET name = ?, description = ?, releaseDate = ?, duration = ?, " +
-            "mpa_rating_id = ? WHERE id = ?";
-    private final String deleteLikesQuery = "DELETE FROM likes WHERE film_id = ? AND user_id = ?";
     @Autowired
     private GenreDbStorage genreDbStorage;
     @Autowired
@@ -36,17 +27,25 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
     @Override
     public List<Film> getFilms() {
+        String findAllQuery = "SELECT * FROM films";
+
         return findMany(findAllQuery);
     }
 
     @Override
     public Film getFilm(Long id) {
+        String findByIdQuery = "SELECT * FROM PUBLIC.films WHERE id = ?";
+
         Optional<Film> filmOptional = findOne(findByIdQuery, id);
         return filmOptional.orElse(null);
     }
 
     @Override
     public Film createFilm(Film film) {
+        String insertFilmQuery = "INSERT INTO films(id, name, description, releaseDate, " +
+                "duration, mpa_rating_id)" +
+                "VALUES (?, ?, ?, ?, ?, ?)";
+
         log.info("Получен запрос на создание фильма: {}", film);
         Long id = jdbc.queryForObject("SELECT NEXT VALUE FOR film_id_seq", Long.class);
         film.setId(id);
@@ -67,6 +66,9 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
     @Override
     public Film updateFilm(Film updatedFilm) {
+        String updateQuery = "UPDATE films SET name = ?, description = ?, releaseDate = ?, duration = ?, " +
+                "mpa_rating_id = ? WHERE id = ?";
+
         Long id = updatedFilm.getId();
         update(
                 updateQuery,
@@ -84,6 +86,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     @Override
     public Film addLike(Long filmId, Long userId) {
         Film film = getFilm(filmId);
+        String insertLikesQuery = "INSERT INTO likes(film_id, user_id) values (?, ?)";
 
         if (film == null) {
             throw new NotFoundException("Фильм с id " + filmId + " не найден");
@@ -103,6 +106,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     @Override
     public Film removeLike(Long filmId, Long userId) {
         Film film = getFilm(filmId);
+        String deleteLikesQuery = "DELETE FROM likes WHERE film_id = ? AND user_id = ?";
 
         if (film == null) {
             throw new NotFoundException("Фильм с id " + filmId + " не найден");
@@ -116,7 +120,6 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     }
 
     @Override
-    // Метод для получения списка популярных фильмов по количеству лайков
     public List<Film> getPopularFilms(Integer count) {
         String findPopularQuery = "select top " + count + " f.id, f.name, f.description, " +
                 "f.releaseDate, f.duration, f.mpa_rating_id\n" +
@@ -125,6 +128,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
                 "    on l.film_id = f.id\n" +
                 "group by f.id, f.name, f.description, f.releaseDate, f.duration, f.mpa_rating_id\n" +
                 "order by count(l.id) desc";
+
         return findMany(findPopularQuery);
     }
 }

@@ -14,9 +14,7 @@ import java.util.Optional;
 @Slf4j
 @Repository
 public class GenreDbStorage extends BaseRepository<Genre> implements GenreStorage {
-    private final String findAllQuery = "SELECT * FROM genres";
     private final String findByIdQuery = "SELECT * FROM genres WHERE id = ?";
-    private final String insertGenresInFilm = "INSERT INTO genres_in_film(film_id, genre_id) values (?, ?)";
 
     public GenreDbStorage(JdbcTemplate jdbc, GenreRowMapper mapper) {
         super(jdbc, mapper, Genre.class);
@@ -37,10 +35,12 @@ public class GenreDbStorage extends BaseRepository<Genre> implements GenreStorag
     }
 
     public List<Genre> getAllGenres() {
+        String findAllQuery = "SELECT * FROM genres";
         return findMany(findAllQuery);
     }
 
     public void saveGenresInFilm(Long filmId, Integer genreId) {
+        String insertGenresInFilm = "INSERT INTO genres_in_film(film_id, genre_id) values (?, ?)";
         insert(insertGenresInFilm,
                 filmId,
                 genreId

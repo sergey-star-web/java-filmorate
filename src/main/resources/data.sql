@@ -75,16 +75,16 @@ INSERT INTO users (email, login, name, birthday)
 SELECT 'testuser@mail.ru', 'testuser999', 'testuser', '2009-03-11 '
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'testuser@mail.ru');
 
-INSERT INTO friends (user_send_id, user_received_id, confirm_friendship_status)
-SELECT 1, 2, false
+INSERT INTO friends (user_send_id, user_received_id)
+SELECT 1, 2
 WHERE NOT EXISTS (SELECT 1 FROM friends WHERE user_send_id = 1 and user_received_id = 2);
 
-INSERT INTO friends (user_send_id, user_received_id, confirm_friendship_status)
-SELECT 1, 3, false
+INSERT INTO friends (user_send_id, user_received_id)
+SELECT 1, 3
 WHERE NOT EXISTS (SELECT 1 FROM friends WHERE user_send_id = 1 and user_received_id = 3);
 
-INSERT INTO friends (user_send_id, user_received_id, confirm_friendship_status)
-SELECT 2, 3, true
+INSERT INTO friends (user_send_id, user_received_id)
+SELECT 2, 3
 WHERE NOT EXISTS (SELECT 1 FROM friends WHERE user_send_id = 2 and user_received_id = 3);
 
 INSERT INTO likes (user_id, film_id)

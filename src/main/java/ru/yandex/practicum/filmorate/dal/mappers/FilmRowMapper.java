@@ -19,9 +19,6 @@ import java.util.*;
 @Slf4j
 @Component
 public class FilmRowMapper implements RowMapper<Film> {
-    private final String findByIdLikesQuery = "SELECT id FROM likes WHERE film_id = ?";
-    private final String findByIdGenresQuery = "SELECT DISTINCT g.id, g.name FROM GENRES_IN_FILM AS gif \n" +
-            "INNER JOIN GENRES AS g ON g.ID = gif.GENRE_ID where gif.FILM_ID = ? ORDER BY g.id ASC";
     @Autowired
     private JdbcTemplate jdbc;
     @Autowired
@@ -30,6 +27,9 @@ public class FilmRowMapper implements RowMapper<Film> {
     @Override
     public Film mapRow(ResultSet resultSet, int rowNum) throws SQLException {
         Film film = new Film();
+        String findByIdLikesQuery = "SELECT id FROM likes WHERE film_id = ?";
+        String findByIdGenresQuery = "SELECT DISTINCT g.id, g.name FROM GENRES_IN_FILM AS gif \n" +
+                "INNER JOIN GENRES AS g ON g.ID = gif.GENRE_ID where gif.FILM_ID = ? ORDER BY g.id ASC";
 
         film.setId(resultSet.getLong("id"));
         film.setName(resultSet.getString("name"));

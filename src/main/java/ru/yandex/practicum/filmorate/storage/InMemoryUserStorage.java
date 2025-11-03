@@ -35,7 +35,7 @@ public class InMemoryUserStorage implements UserStorage {
         if (friend == null) {
             throw new NotFoundException("Пользователь с id " + friendId + " не найдено");
         }
-        if (user.getFriends().containsKey(friendId) || friend.getFriends().containsKey(userId)) {
+        if (user.getFriends().contains(friendId) || friend.getFriends().contains(userId)) {
             throw new FriendsAddException("Пользователи с id " + userId + " и " + friendId +
                     " уже в друзьях друг у друга");
         }
@@ -56,7 +56,7 @@ public class InMemoryUserStorage implements UserStorage {
         if (friend == null) {
             throw new NotFoundException("Пользователь с id " + friendId + " не найдено");
         }
-        if (!user.getFriends().containsKey(friendId) || !friend.getFriends().containsKey(userId)) {
+        if (!user.getFriends().contains(friendId) || !friend.getFriends().contains(userId)) {
             log.info("Попытка удалить несуществующую дружбу между {} и {}", userId, friendId);
             return user;
         }
@@ -73,7 +73,7 @@ public class InMemoryUserStorage implements UserStorage {
         if (user == null) {
             throw new NotFoundException("Пользователь с id " + id + " не найден");
         }
-        return user.getFriends().keySet().stream()
+        return user.getFriends().stream()
                 .map(users::get)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
@@ -90,8 +90,8 @@ public class InMemoryUserStorage implements UserStorage {
         if (otherUser == null) {
             throw new NotFoundException("Пользователь с id " + otherId + " не найден");
         }
-        Set<Long> commonFriendIds = new HashSet<>(user.getFriends().keySet());
-        commonFriendIds.retainAll(otherUser.getFriends().keySet());
+        Set<Long> commonFriendIds = new HashSet<>(user.getFriends());
+        commonFriendIds.retainAll(otherUser.getFriends());
         return commonFriendIds.stream()
                 .map(users::get)
                 .collect(Collectors.toSet());
