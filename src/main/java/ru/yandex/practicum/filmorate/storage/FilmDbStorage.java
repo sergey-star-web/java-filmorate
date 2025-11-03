@@ -118,13 +118,13 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     @Override
     // Метод для получения списка популярных фильмов по количеству лайков
     public List<Film> getPopularFilms(Integer count) {
-        String FIND_POPULAR_QUERY = "select top "+ count +" f.id, f.name, f.description, " +
+        String findPopularQuery = "select top " + count + " f.id, f.name, f.description, " +
                 "f.releaseDate, f.duration, f.mpa_rating_id\n" +
                 "from films as f\n" +
                 "inner join likes as l\n" +
                 "    on l.film_id = f.id\n" +
                 "group by f.id, f.name, f.description, f.releaseDate, f.duration, f.mpa_rating_id\n" +
                 "order by count(l.id) desc";
-        return findMany(FIND_POPULAR_QUERY);
+        return findMany(findPopularQuery);
     }
 }
