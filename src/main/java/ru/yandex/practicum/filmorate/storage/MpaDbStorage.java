@@ -14,20 +14,20 @@ import java.util.Optional;
 @Slf4j
 @Repository
 public class MpaDbStorage extends BaseRepository<Mpa> implements MpaStorage {
-    private final String FIND_ALL_QUERY = "SELECT * FROM mpa_rating";
-    private final String FIND_BY_ID_QUERY = "SELECT * FROM mpa_rating WHERE id = ?";
+    private final String findAllQuery = "SELECT * FROM mpa_rating";
+    private final String findByIdQuery = "SELECT * FROM mpa_rating WHERE id = ?";
 
     public MpaDbStorage(JdbcTemplate jdbc, MpaRowMapper mapper) {
         super(jdbc, mapper, Mpa.class);
     }
 
     public boolean exists(Integer id) {
-        Mpa mpa = findOne(FIND_BY_ID_QUERY, id).orElse(null);
+        Mpa mpa = findOne(findByIdQuery, id).orElse(null);
         return mpa != null;
     }
 
     public Mpa getMpa(Integer id) {
-        Optional<Mpa> mpaOptional = findOne(FIND_BY_ID_QUERY, id);
+        Optional<Mpa> mpaOptional = findOne(findByIdQuery, id);
         if (mpaOptional.isPresent()) {
             return mpaOptional.get();
         } else {
@@ -36,6 +36,6 @@ public class MpaDbStorage extends BaseRepository<Mpa> implements MpaStorage {
     }
 
     public List<Mpa> getAllMpa() {
-        return findMany(FIND_ALL_QUERY);
+        return findMany(findAllQuery);
     }
 }

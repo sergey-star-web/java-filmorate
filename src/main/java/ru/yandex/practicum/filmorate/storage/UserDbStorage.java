@@ -15,7 +15,7 @@ import java.util.*;
 @Component
 @Slf4j
 public class UserDbStorage extends BaseRepository<User> implements UserStorage {
-    private final String FIND_ALL_QUERY = "SELECT * FROM users";
+    private final String findAllQuery = "SELECT * FROM users";
     private final String FIND_BY_ID_QUERY = "SELECT * FROM users WHERE id = ?";
     private final String INSERT_USER_QUERY = "INSERT INTO users(id, email, login, name, birthday)" +
             "VALUES (?, ?, ?, ?, ?)";
@@ -124,7 +124,7 @@ public class UserDbStorage extends BaseRepository<User> implements UserStorage {
 
     @Override
     public List<User> getUsers() {
-        return findMany(FIND_ALL_QUERY);
+        return findMany(findAllQuery);
     }
 
     @Override

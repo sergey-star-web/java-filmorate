@@ -14,7 +14,7 @@ import java.util.Optional;
 @Slf4j
 @Repository
 public class GenreDbStorage extends BaseRepository<Genre> implements GenreStorage {
-    private final String FIND_ALL_QUERY = "SELECT * FROM genres";
+    private final String findAllQuery = "SELECT * FROM genres";
     private final String FIND_BY_ID_QUERY = "SELECT * FROM genres WHERE id = ?";
     private final String INSERT_GENRES_IN_FILN_QUERY = "INSERT INTO genres_in_film(film_id, genre_id) values (?, ?)";
 
@@ -37,7 +37,7 @@ public class GenreDbStorage extends BaseRepository<Genre> implements GenreStorag
     }
 
     public List<Genre> getAllGenres() {
-        return findMany(FIND_ALL_QUERY);
+        return findMany(findAllQuery);
     }
 
     public void saveGenresInFilm(Long filmId, Integer genreId) {

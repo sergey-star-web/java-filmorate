@@ -11,8 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @ControllerAdvice
-public class GlobalExceptionHandler extends ResponseEntityExceptionHandler
-{
+public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private final String error = "error";
     private final String message = "message";
 
