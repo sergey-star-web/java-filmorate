@@ -16,15 +16,15 @@ import java.util.*;
 @Slf4j
 @Repository
 public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
-    private final String FIND_ALL_QUERY = "SELECT * FROM films";
-    private final String FIND_BY_ID_QUERY = "SELECT * FROM PUBLIC.films WHERE id = ?";
-    private final String INSERT_FILM_QUERY = "INSERT INTO films(id, name, description, releaseDate, " +
+    private final String findAllQuery = "SELECT * FROM films";
+    private final String findByIdQuery = "SELECT * FROM PUBLIC.films WHERE id = ?";
+    private final String insertFilmQuery = "INSERT INTO films(id, name, description, releaseDate, " +
             "duration, mpa_rating_id)" +
             "VALUES (?, ?, ?, ?, ?, ?)";
-    private final String INSERT_LIKES_QUERY = "INSERT INTO likes(film_id, user_id) values (?, ?)";
-    private final String UPDATE_QUERY = "UPDATE films SET name = ?, description = ?, releaseDate = ?, duration = ?, " +
+    private final String insertLikesQuery = "INSERT INTO likes(film_id, user_id) values (?, ?)";
+    private final String updateQuery = "UPDATE films SET name = ?, description = ?, releaseDate = ?, duration = ?, " +
             "mpa_rating_id = ? WHERE id = ?";
-    private final String DELETE_LIKES_QUERY = "DELETE FROM likes WHERE film_id = ? AND user_id = ?";
+    private final String deleteLikesQuery = "DELETE FROM likes WHERE film_id = ? AND user_id = ?";
     @Autowired
     private GenreDbStorage genreDbStorage;
     @Autowired
@@ -36,12 +36,12 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
 
     @Override
     public List<Film> getFilms() {
-        return findMany(FIND_ALL_QUERY);
+        return findMany(findAllQuery);
     }
 
     @Override
     public Film getFilm(Long id) {
-        Optional<Film> filmOptional = findOne(FIND_BY_ID_QUERY, id);
+        Optional<Film> filmOptional = findOne(findByIdQuery, id);
         return filmOptional.orElse(null);
     }
 
@@ -53,7 +53,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         for (Genre genre : film.getGenres()) {
             genreDbStorage.saveGenresInFilm(id, genre.getId());
         }
-        insert(INSERT_FILM_QUERY,
+        insert(insertFilmQuery,
                 id,
                 film.getName(),
                 film.getDescription(),
@@ -69,7 +69,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
     public Film updateFilm(Film updatedFilm) {
         Long id = updatedFilm.getId();
         update(
-                UPDATE_QUERY,
+                updateQuery,
                 updatedFilm.getName(),
                 updatedFilm.getDescription(),
                 updatedFilm.getReleaseDate(),
@@ -92,7 +92,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
             throw new LikeAddException("Пользователи с id " + userId + " уже добавил лайк посту с id  "
                     + filmId);
         }
-        insert(INSERT_LIKES_QUERY,
+        insert(insertLikesQuery,
                 filmId,
                 userId
         );
@@ -107,7 +107,7 @@ public class FilmDbStorage extends BaseRepository<Film> implements FilmStorage {
         if (film == null) {
             throw new NotFoundException("Фильм с id " + filmId + " не найден");
         }
-        update(DELETE_LIKES_QUERY,
+        update(deleteLikesQuery,
                 filmId,
                 userId
         );

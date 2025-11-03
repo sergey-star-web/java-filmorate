@@ -19,8 +19,8 @@ import java.util.*;
 @Slf4j
 @Component
 public class FilmRowMapper implements RowMapper<Film> {
-    private final String FIND_BY_ID_LIKES_QUERY = "SELECT id FROM likes WHERE film_id = ?";
-    private final String FIND_BY_ID_GENRES_QUERY = "SELECT DISTINCT g.id, g.name FROM GENRES_IN_FILM AS gif \n" +
+    private final String findByIdLikesQuery = "SELECT id FROM likes WHERE film_id = ?";
+    private final String findByIdGenresQuery = "SELECT DISTINCT g.id, g.name FROM GENRES_IN_FILM AS gif \n" +
             "INNER JOIN GENRES AS g ON g.ID = gif.GENRE_ID where gif.FILM_ID = ? ORDER BY g.id ASC";
     @Autowired
     private JdbcTemplate jdbc;
@@ -39,9 +39,9 @@ public class FilmRowMapper implements RowMapper<Film> {
         film.setDuration(resultSet.getInt("duration"));
         Mpa mpa = mpaDbStorage.getMpa(resultSet.getInt("mpa_rating_id"));
         film.setMpa(mpa);
-        List<Long> likes = jdbc.query(FIND_BY_ID_LIKES_QUERY, (rs, rn) -> rs.getLong(1), film.getId());
+        List<Long> likes = jdbc.query(findByIdLikesQuery, (rs, rn) -> rs.getLong(1), film.getId());
         film.setLikes(new HashSet<>(likes));
-        Optional<List<Genre>> genres = Optional.of(jdbc.query(FIND_BY_ID_GENRES_QUERY, new GenreRowMapper(), film.getId()));
+        Optional<List<Genre>> genres = Optional.of(jdbc.query(findByIdGenresQuery, new GenreRowMapper(), film.getId()));
         if (!genres.get().isEmpty()) {
             List<Genre> genreList = genres.get();
             film.setGenres(genreList);
