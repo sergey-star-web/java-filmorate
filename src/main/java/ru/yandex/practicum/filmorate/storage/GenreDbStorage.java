@@ -15,20 +15,20 @@ import java.util.Optional;
 @Repository
 public class GenreDbStorage extends BaseRepository<Genre> implements GenreStorage {
     private final String findAllQuery = "SELECT * FROM genres";
-    private final String FIND_BY_ID_QUERY = "SELECT * FROM genres WHERE id = ?";
-    private final String INSERT_GENRES_IN_FILN_QUERY = "INSERT INTO genres_in_film(film_id, genre_id) values (?, ?)";
+    private final String findByIdQuery = "SELECT * FROM genres WHERE id = ?";
+    private final String insertGenresInFilm = "INSERT INTO genres_in_film(film_id, genre_id) values (?, ?)";
 
     public GenreDbStorage(JdbcTemplate jdbc, GenreRowMapper mapper) {
         super(jdbc, mapper, Genre.class);
     }
 
     public boolean exists(Integer id) {
-        Genre genre = findOne(FIND_BY_ID_QUERY, id).orElse(null);
+        Genre genre = findOne(findByIdQuery, id).orElse(null);
         return genre != null;
     }
 
     public Genre getGenre(Integer id) {
-        Optional<Genre> genreOptional = findOne(FIND_BY_ID_QUERY, id);
+        Optional<Genre> genreOptional = findOne(findByIdQuery, id);
         if (genreOptional.isPresent()) {
             return genreOptional.get();
         } else {
@@ -41,7 +41,7 @@ public class GenreDbStorage extends BaseRepository<Genre> implements GenreStorag
     }
 
     public void saveGenresInFilm(Long filmId, Integer genreId) {
-        insert(INSERT_GENRES_IN_FILN_QUERY,
+        insert(insertGenresInFilm,
                 filmId,
                 genreId
         );
