@@ -21,4 +21,8 @@ public class MpaService {
     public List<Mpa> getAllMpa() {
         return mpaStorage.getAllMpa();
     }
+
+    public boolean exists(Integer id) {
+        return mpaStorage.exists(id);
+    }
 }

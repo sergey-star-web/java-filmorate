@@ -8,12 +8,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 @Component
-public class GenreRowMapper implements RowMapper<Genre> {
+public class GenreInFilmRowMapper implements RowMapper<Genre> {
     @Override
     public Genre mapRow(ResultSet resultSet, int rowNum) throws SQLException {
         Genre genre = new Genre();
         genre.setId(resultSet.getInt("id"));
         genre.setName(resultSet.getString("name"));
+        genre.setFilmId(resultSet.getLong("film_id"));
 
         return genre;
     }

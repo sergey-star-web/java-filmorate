@@ -32,27 +32,11 @@ public class Film {
     @Min(value = 0, message = "Продолжительность фильма должна быть положительным числом")
     private Integer duration;
     private Mpa mpa;
-    private Set<Long> likes;
     private List<Genre> genres;
+    private Set<Long> likes;
 
     public Film() {
-        likes = new HashSet<>();
         genres = new ArrayList<>();
-    }
-
-    public boolean addLike(Long id) {
-        return likes.add(id);
-    }
-
-    public boolean removeLike(Long id) {
-        return likes.remove(id);
-    }
-
-    public boolean addGenre(Genre genre) {
-        return genres.add(genre);
-    }
-
-    public boolean removeGenre(Genre genre) {
-        return genres.remove(genre);
+        likes = new HashSet<>();
     }
 }

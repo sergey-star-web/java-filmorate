@@ -8,4 +8,6 @@ public interface MpaStorage {
     Mpa getMpa(Integer id);
 
     List<Mpa> getAllMpa();
+
+    boolean exists(Integer id);
 }

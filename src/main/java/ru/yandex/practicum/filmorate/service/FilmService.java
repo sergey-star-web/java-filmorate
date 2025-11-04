@@ -13,7 +13,6 @@ import java.util.List;
 @Service
 public class FilmService {
     @Autowired
-    @Qualifier("filmDbStorage")
     private FilmStorage filmStorage;
 
     public Film createFilm(Film film) {

@@ -11,8 +11,8 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.storage.GenreDbStorage;
-import ru.yandex.practicum.filmorate.storage.MpaDbStorage;
+import ru.yandex.practicum.filmorate.service.GenreService;
+import ru.yandex.practicum.filmorate.service.MpaService;
 
 import java.util.List;
 
@@ -23,9 +23,9 @@ public class FilmController {
     @Autowired
     private FilmService filmService;
     @Autowired
-    private MpaDbStorage mpaDbStorage;
+    private MpaService mpaService;
     @Autowired
-    private GenreDbStorage genreDbStorage;
+    private GenreService genreService;
 
     @GetMapping
     public ResponseEntity<List<Film>> getFilms() {
@@ -42,15 +42,18 @@ public class FilmController {
         log.info("Получен запрос на создание фильма: {}", film);
         // Проверка существования рейтинга Mpa
         Integer mpaId = film.getMpa().getId();
-        if (!mpaDbStorage.exists(mpaId)) {
+        if (!mpaService.exists(mpaId)) {
             String errorMessage = String.format("Не найден рейтинг с ID %d", mpaId);
             log.warn(errorMessage);
             throw new NotFoundException();
         }
-        // Проверка существования жанра
+        List<Integer> genres = genreService.getAllGenres().stream()
+                .map(Genre::getId)
+                .toList();
+        // Проверка соответствия жанров
         for (Genre genre : film.getGenres()) {
             Integer genreId = genre.getId();
-            if (!genreDbStorage.exists(genreId)) {
+            if (!genres.contains(genreId)) {
                 String errorMessage = String.format("Не найден жанр с ID %d", genreId);
                 log.warn(errorMessage);
                 throw new NotFoundException();

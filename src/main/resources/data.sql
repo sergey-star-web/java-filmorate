@@ -1,34 +1,34 @@
-INSERT INTO GENRES (name, const) SELECT 'Комедия', 'COMEDY'
+INSERT INTO GENRES (id, name, const) SELECT 1, 'Комедия', 'COMEDY'
 WHERE NOT EXISTS (SELECT 1 FROM GENRES WHERE name = 'Комедия');
 
-INSERT INTO GENRES (name, const) SELECT 'Драма', 'DRAMA'
+INSERT INTO GENRES (id, name, const) SELECT 2, 'Драма', 'DRAMA'
 WHERE NOT EXISTS (SELECT 1 FROM GENRES WHERE name = 'Драма');
 
-INSERT INTO GENRES (name, const) SELECT 'Мультфильм', 'CARTOON'
+INSERT INTO GENRES (id, name, const) SELECT 3, 'Мультфильм', 'CARTOON'
 WHERE NOT EXISTS (SELECT 1 FROM GENRES WHERE name = 'Мультфильм');
 
-INSERT INTO GENRES (name, const) SELECT 'Триллер', 'THRILLER'
+INSERT INTO GENRES (id, name, const) SELECT 4, 'Триллер', 'THRILLER'
 WHERE NOT EXISTS (SELECT 1 FROM GENRES WHERE name = 'Триллер');
 
-INSERT INTO GENRES (name, const) SELECT 'Документальный', 'DOCUMENTARY'
+INSERT INTO GENRES (id, name, const) SELECT 5, 'Документальный', 'DOCUMENTARY'
 WHERE NOT EXISTS (SELECT 1 FROM GENRES WHERE name = 'Документальный');
 
-INSERT INTO GENRES (name, const) SELECT 'Боевик', 'ACTION'
+INSERT INTO GENRES (id, name, const) SELECT 6, 'Боевик', 'ACTION'
 WHERE NOT EXISTS (SELECT 1 FROM GENRES WHERE name = 'Боевик');
 
-INSERT INTO MPA_RATING (name, description) SELECT 'G', 'у фильма нет возрастных ограничений'
+INSERT INTO MPA_RATING (id, name, description) SELECT 1, 'G', 'у фильма нет возрастных ограничений'
 WHERE NOT EXISTS (SELECT 1 FROM MPA_RATING WHERE name = 'G');
 
-INSERT INTO MPA_RATING (name, description) SELECT 'PG', 'детям рекомендуется смотреть фильм с родителями'
+INSERT INTO MPA_RATING (id, name, description) SELECT 2, 'PG', 'детям рекомендуется смотреть фильм с родителями'
 WHERE NOT EXISTS (SELECT 1 FROM MPA_RATING WHERE name = 'PG');
 
-INSERT INTO MPA_RATING (name, description) SELECT 'PG-13', 'детям до 13 лет просмотр не желателен'
+INSERT INTO MPA_RATING (id, name, description) SELECT 3, 'PG-13', 'детям до 13 лет просмотр не желателен'
 WHERE NOT EXISTS (SELECT 1 FROM MPA_RATING WHERE name = 'PG-13');
 
-INSERT INTO MPA_RATING (name, description) SELECT 'R', 'лицам до 17 лет просматривать фильм можно только в присутствии взрослого'
+INSERT INTO MPA_RATING (id, name, description) SELECT 4, 'R', 'лицам до 17 лет просматривать фильм можно только в присутствии взрослого'
 WHERE NOT EXISTS (SELECT 1 FROM MPA_RATING WHERE name = 'R');
 
-INSERT INTO MPA_RATING (name, description) SELECT 'NC-17', 'лицам до 18 лет просмотр запрещён'
+INSERT INTO MPA_RATING (id, name, description) SELECT 5, 'NC-17', 'лицам до 18 лет просмотр запрещён'
 WHERE NOT EXISTS (SELECT 1 FROM MPA_RATING WHERE name = 'NC-17');
 
 INSERT INTO films (name, description, releaseDate, duration, mpa_rating_id)
