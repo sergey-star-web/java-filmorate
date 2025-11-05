@@ -22,17 +22,21 @@ import java.util.*;
 
 @JdbcTest
 @Import(TestConfig.class)
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class FilmDbStorageTest {
     private final JdbcTemplate jdbc;
     private final FilmDbStorage filmDbStorage;
     private final UserDbStorage userDbStorage;
+
     Mpa pg = new Mpa(2, "PG");
     Mpa nc17 = new Mpa(5, "NC-17");
     Genre comedy = new Genre(1, "COMEDY");
     Genre drama = new Genre(2, "DRAMA");
     Genre science = new Genre(3, "CARTOON");
+
+    private final String filmName = "test film";
+    private final String filmDesc = "test desc";
 
     @BeforeEach
     void setUp() {
@@ -41,81 +45,85 @@ public class FilmDbStorageTest {
         jdbc.update("DELETE FROM films");
         jdbc.update("DELETE FROM friends");
         jdbc.update("DELETE FROM users");
-        //jdbc.update("DELETE FROM genres");
-        //jdbc.update("DELETE FROM mpa_rating");
-        //jdbc.update("ALTER TABLE films ALTER COLUMN film_id RESTART WITH 1");
-        //jdbc.update("ALTER TABLE users ALTER COLUMN user_id RESTART WITH 1");
+        jdbc.update("ALTER SEQUENCE film_id_seq RESTART WITH 1");
+        jdbc.update("ALTER SEQUENCE user_id_seq RESTART WITH 1");
+    }
+
+    private Film createTestFilm(String name, String description, Mpa mpa) {
+        Film film = new Film();
+        film.setName(name);
+        film.setDescription(description);
+        film.setReleaseDate(LocalDate.of(2000, 1, 1));
+        film.setDuration(90);
+        film.setMpa(mpa);
+        return film;
     }
 
     @Test
     void testAddFilm() {
-        Film film = createTestFilm("Test Film", "Test Description", pg);
-        System.out.println("aaaaa1: " + film);
+        Film film = createTestFilm(filmName, filmDesc, pg);
         filmDbStorage.createFilm(film);
         Film savedFilm = filmDbStorage.getFilm(film.getId());
         assertThat(savedFilm).isNotNull();
         assertThat(savedFilm.getId()).isEqualTo(1L);
-        assertThat(savedFilm.getName()).isEqualTo("Test Film");
-        assertThat(savedFilm.getDescription()).isEqualTo("Test Description");
-        assertThat(savedFilm.getMpa()).isEqualTo(pg);
-        assertThat(savedFilm.getDuration()).isEqualTo(120);
+        assertThat(savedFilm.getName()).isEqualTo(filmName);
+        assertThat(savedFilm.getDescription()).isEqualTo(filmDesc);
+        assertThat(savedFilm.getMpa().getId()).isEqualTo(pg.getId());
+        assertThat(savedFilm.getDuration()).isEqualTo(90);
         assertThat(savedFilm.getReleaseDate()).isEqualTo(LocalDate.of(2000, 1, 1));
         assertThat(savedFilm.getLikes()).isEmpty();
     }
 
     @Test
     void testAddFilmWithGenres() {
-        Film film = createTestFilm("Test Film", "Test Description", pg);
-        System.out.println("aaaaa1: " + film);
+        Film film = createTestFilm(filmName, filmDesc, pg);
         List<Genre> genres = Arrays.asList(comedy, drama);
         film.setGenres(genres);
         filmDbStorage.createFilm(film);
         Film savedFilm = filmDbStorage.getFilm(film.getId());
-        assertThat(savedFilm.getGenres()).hasSize(2);
-        assertThat(savedFilm.getGenres()).contains(comedy, drama);
+        List<Integer> genresIds = savedFilm.getGenres().stream().map(Genre::getId).toList();
+        assertThat(genresIds).hasSize(2);
+        assertThat(genresIds).contains(comedy.getId(), drama.getId());
     }
 
     @Test
     void testGetFilm() {
-        Film film = createTestFilm("Test Film", "Test Description", pg);
+        Film film = createTestFilm(filmName, filmDesc, pg);
         filmDbStorage.createFilm(film);
         Long filmId = film.getId();
         Film foundFilm = filmDbStorage.getFilm(filmId);
         assertThat(foundFilm).isNotNull();
         assertThat(foundFilm.getId()).isEqualTo(filmId);
-        assertThat(foundFilm.getName()).isEqualTo("Test Film");
+        assertThat(foundFilm.getName()).isEqualTo(filmName);
     }
 
     @Test
-    @DisplayName("Поиск несуществующего фильма")
     void testGetFilm_NotFound() {
         Film foundFilm = filmDbStorage.getFilm(45745756L);
         assertThat(foundFilm).isNull();
     }
 
     @Test
-    @DisplayName("Получение всех фильмов")
     void testGetAllFilms() {
-        Film film1 = createTestFilm("Film One", "Description One", pg);
-        Film film2 = createTestFilm("Film Two", "Description Two", nc17);
+        Film film1 = createTestFilm("first film", "desc 111", pg);
+        Film film2 = createTestFilm("second film", "desc 222", nc17);
         filmDbStorage.createFilm(film1);
         filmDbStorage.createFilm(film2);
         List<Film> films = filmDbStorage.getFilms();
         assertThat(films).hasSize(2);
-        assertThat(films.getFirst().getName()).isEqualTo("Film One");
-        assertThat(films.getLast().getName()).isEqualTo("Film Two");
+        assertThat(films.getFirst().getName()).isEqualTo("first film");
+        assertThat(films.getLast().getName()).isEqualTo("second film");
     }
 
     @Test
-    @DisplayName("Добавление и удаление лайка")
     void testAddAndRemoveLike() {
-        Film film = createTestFilm("Test Film", "Test Description", pg);
+        Film film = createTestFilm(filmName, filmDesc, pg);
         filmDbStorage.createFilm(film);
         Long filmId = film.getId();
         User user = new User();
-        user.setEmail("user@mail.ru");
-        user.setLogin("userlogin");
-        user.setName("Test User");
+        user.setEmail("example@mail.ru");
+        user.setLogin("user");
+        user.setName("test user");
         user.setBirthday(LocalDate.of(1990, 1, 1));
         userDbStorage.createUser(user);
         Long userId = user.getId();
@@ -128,25 +136,14 @@ public class FilmDbStorageTest {
     }
 
     @Test
-    @DisplayName("Добавление фильма с несколькими жанрами")
     void testFilmWithMultipleGenres() {
-        Film film = createTestFilm("Test Film", "Test Description", pg);
+        Film film = createTestFilm(filmName, filmDesc, pg);
         List<Genre> genres = Arrays.asList(comedy, drama, science);
         film.setGenres(genres);
         filmDbStorage.createFilm(film);
         Film savedFilm = filmDbStorage.getFilm(film.getId());
-        assertThat(savedFilm.getGenres()).hasSize(3);
-        assertThat(savedFilm.getGenres())
-                .contains(comedy, drama, science);
-    }
-
-    private Film createTestFilm(String name, String description, Mpa mpa) {
-        Film film = new Film();
-        film.setName(name);
-        film.setDescription(description);
-        film.setReleaseDate(LocalDate.of(2000, 1, 1));
-        film.setDuration(120);
-        film.setMpa(mpa);
-        return film;
+        List<Integer> genresIds = savedFilm.getGenres().stream().map(Genre::getId).toList();
+        assertThat(genresIds).hasSize(3);
+        assertThat(genresIds).contains(comedy.getId(), drama.getId(), science.getId());
     }
 }
