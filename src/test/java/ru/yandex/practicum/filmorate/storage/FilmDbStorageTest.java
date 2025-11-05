@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -35,8 +34,8 @@ public class FilmDbStorageTest {
     Genre drama = new Genre(2, "DRAMA");
     Genre science = new Genre(3, "CARTOON");
 
-    private final String filmName = "test film";
-    private final String filmDesc = "test desc";
+    private final String name = "test film";
+    private final String description = "test desc";
 
     @BeforeEach
     void setUp() {
@@ -60,14 +59,14 @@ public class FilmDbStorageTest {
     }
 
     @Test
-    void testAddFilm() {
-        Film film = createTestFilm(filmName, filmDesc, pg);
+    void testCreateFilm() {
+        Film film = createTestFilm(name, description, pg);
         filmDbStorage.createFilm(film);
         Film savedFilm = filmDbStorage.getFilm(film.getId());
         assertThat(savedFilm).isNotNull();
         assertThat(savedFilm.getId()).isEqualTo(1L);
-        assertThat(savedFilm.getName()).isEqualTo(filmName);
-        assertThat(savedFilm.getDescription()).isEqualTo(filmDesc);
+        assertThat(savedFilm.getName()).isEqualTo(name);
+        assertThat(savedFilm.getDescription()).isEqualTo(description);
         assertThat(savedFilm.getMpa().getId()).isEqualTo(pg.getId());
         assertThat(savedFilm.getDuration()).isEqualTo(90);
         assertThat(savedFilm.getReleaseDate()).isEqualTo(LocalDate.of(2000, 1, 1));
@@ -75,8 +74,8 @@ public class FilmDbStorageTest {
     }
 
     @Test
-    void testAddFilmWithGenres() {
-        Film film = createTestFilm(filmName, filmDesc, pg);
+    void testCreateFilmWithGenres() {
+        Film film = createTestFilm(name, description, pg);
         List<Genre> genres = Arrays.asList(comedy, drama);
         film.setGenres(genres);
         filmDbStorage.createFilm(film);
@@ -88,17 +87,17 @@ public class FilmDbStorageTest {
 
     @Test
     void testGetFilm() {
-        Film film = createTestFilm(filmName, filmDesc, pg);
+        Film film = createTestFilm(name, description, pg);
         filmDbStorage.createFilm(film);
         Long filmId = film.getId();
         Film foundFilm = filmDbStorage.getFilm(filmId);
         assertThat(foundFilm).isNotNull();
         assertThat(foundFilm.getId()).isEqualTo(filmId);
-        assertThat(foundFilm.getName()).isEqualTo(filmName);
+        assertThat(foundFilm.getName()).isEqualTo(name);
     }
 
     @Test
-    void testGetFilm_NotFound() {
+    void testGetFilmNotFound() {
         Film foundFilm = filmDbStorage.getFilm(45745756L);
         assertThat(foundFilm).isNull();
     }
@@ -117,7 +116,7 @@ public class FilmDbStorageTest {
 
     @Test
     void testAddAndRemoveLike() {
-        Film film = createTestFilm(filmName, filmDesc, pg);
+        Film film = createTestFilm(name, description, pg);
         filmDbStorage.createFilm(film);
         Long filmId = film.getId();
         User user = new User();
@@ -137,7 +136,7 @@ public class FilmDbStorageTest {
 
     @Test
     void testFilmWithMultipleGenres() {
-        Film film = createTestFilm(filmName, filmDesc, pg);
+        Film film = createTestFilm(name, description, pg);
         List<Genre> genres = Arrays.asList(comedy, drama, science);
         film.setGenres(genres);
         filmDbStorage.createFilm(film);
