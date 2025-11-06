@@ -9,11 +9,9 @@ import ru.yandex.practicum.filmorate.dal.mappers.MpaRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.GenreService;
+import ru.yandex.practicum.filmorate.service.LikeService;
 import ru.yandex.practicum.filmorate.service.MpaService;
-import ru.yandex.practicum.filmorate.storage.FilmDbStorage;
-import ru.yandex.practicum.filmorate.storage.GenreDbStorage;
-import ru.yandex.practicum.filmorate.storage.MpaDbStorage;
-import ru.yandex.practicum.filmorate.storage.UserDbStorage;
+import ru.yandex.practicum.filmorate.storage.*;
 
 import javax.sql.DataSource;
 
@@ -40,6 +38,11 @@ public class TestConfig {
     }
 
     @Bean
+    public LikeDbStorage likeDbStorage(DataSource dataSource) {
+        return new LikeDbStorage(new JdbcTemplate(dataSource));
+    }
+
+    @Bean
     public GenreService genreService() {
         return new GenreService();
     }
@@ -52,5 +55,10 @@ public class TestConfig {
     @Bean
     public FilmService filmService() {
         return new FilmService();
+    }
+
+    @Bean
+    public LikeService likeService() {
+        return new LikeService();
     }
 }

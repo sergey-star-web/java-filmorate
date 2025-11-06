@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -23,7 +22,7 @@ public class FilmService {
     @Autowired
     private GenreService genreService;
     @Autowired
-    private JdbcTemplate jdbc;
+    private LikeService likeService;
     private final String warnEmptyGenreInFilm = "Для фильма с ID {} жанры не найдены";
 
     public Film createFilm(Film film) {
@@ -56,33 +55,16 @@ public class FilmService {
         return getFilm(film.getId());
     }
 
-    private List<Long> getLikesInFim(Long filmId) {
-        String findByIdLikesQuery = "SELECT user_id FROM likes WHERE film_id = ?";
-        return jdbc.query(findByIdLikesQuery, (rs, rn) -> rs.getLong(1), filmId);
-    }
-
-    private HashMap<Long, Long> getAllLikes() {
-        String findByIdLikesQuery = "SELECT user_id, film_id FROM likes";
-        HashMap<Long, Long> likesMap = new HashMap<>();
-        jdbc.query(findByIdLikesQuery, (rs, rn) -> {
-            Long userId = rs.getLong("user_id");
-            Long filmId = rs.getLong("film_id");
-            likesMap.put(userId, filmId);
-            return likesMap; // Возврат карты для каждого ряда не требуется, но нужен для соответствия сигнатуре метода
-        });
-        return likesMap;
-    }
-
-    private void updateLikesInFilm(Film film, List<Long> likes) {
+    private void setLikesInFilm(Film film, List<Long> likes) {
         film.setLikes(new HashSet<>(likes));
     }
 
-    private void updateMpaInFilm(Film film) {
+    private void setMpaInFilm(Film film) {
         Mpa mpa = mpaService.getMpa(film.getMpa().getId());
         film.setMpa(mpa);
     }
 
-    private void updateGenreInFilm(Film film, List<Genre> genreInFilm) {
+    private void setGenreInFilm(Film film, List<Genre> genreInFilm) {
         if (!genreInFilm.isEmpty()) {
             film.setGenres(genreInFilm);
         } else {
@@ -93,7 +75,7 @@ public class FilmService {
     public List<Film> getAllFilms() {
         List<Film> films = filmStorage.getFilms();
         List<Genre> genres = genreService.getAllGenresInFilm();
-        HashMap<Long, Long> likes = getAllLikes();
+        HashMap<Long, Long> likes = likeService.getAllLikes();
         for (Film film : films) {
             // Получаем жанры конкретного фильма
             List<Genre> genreInFilm = genres.stream()
@@ -106,9 +88,9 @@ public class FilmService {
                     .map(Map.Entry::getKey)
                     .collect(Collectors.toList());
             likes.entrySet().removeIf(entry -> likesInFilm.contains(entry.getKey()));
-            updateMpaInFilm(film);
-            updateLikesInFilm(film, likesInFilm);
-            updateGenreInFilm(film, genreInFilm);
+            setMpaInFilm(film);
+            setLikesInFilm(film, likesInFilm);
+            setGenreInFilm(film, genreInFilm);
         }
         return films;
     }
@@ -136,9 +118,9 @@ public class FilmService {
     public Film getFilm(Long id) {
         Film film = filmStorage.getFilm(id);
         if (film != null) {
-            updateMpaInFilm(film);
-            updateGenreInFilm(film, genreService.getGenresInFilm(id));
-            updateLikesInFilm(film, getLikesInFim(id));
+            setMpaInFilm(film);
+            setGenreInFilm(film, genreService.getGenresInFilm(id));
+            setLikesInFilm(film, likeService.getLikesInFim(id));
             return film;
         }
         return null;
