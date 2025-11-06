@@ -137,8 +137,7 @@ public class FilmService {
         Film film = filmStorage.getFilm(id);
         if (film != null) {
             updateMpaInFilm(film);
-            List<Genre> genreInFilm = genreService.getGenresInFilm(id);
-            updateGenreInFilm(film, genreInFilm);
+            updateGenreInFilm(film, genreService.getGenresInFilm(id));
             updateLikesInFilm(film, getLikesInFim(id));
             return film;
         }
