@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.dal.mappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.GenreRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.MpaRowMapper;
 import ru.yandex.practicum.filmorate.dal.mappers.UserRowMapper;
+import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.GenreService;
 import ru.yandex.practicum.filmorate.service.MpaService;
 import ru.yandex.practicum.filmorate.storage.FilmDbStorage;
@@ -46,5 +47,10 @@ public class TestConfig {
     @Bean
     public MpaService mpaService() {
         return new MpaService();
+    }
+
+    @Bean
+    public FilmService filmService() {
+        return new FilmService();
     }
 }

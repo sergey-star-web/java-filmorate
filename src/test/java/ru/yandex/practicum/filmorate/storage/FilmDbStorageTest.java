@@ -13,6 +13,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -25,8 +26,9 @@ import java.util.*;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class FilmDbStorageTest {
     private final JdbcTemplate jdbc;
-    private final FilmDbStorage filmDbStorage;
     private final UserDbStorage userDbStorage;
+    private final FilmDbStorage filmDbStorage;
+    private final FilmService filmService;
 
     Mpa pg = new Mpa(2, "PG");
     Mpa nc17 = new Mpa(5, "NC-17");
@@ -61,8 +63,8 @@ public class FilmDbStorageTest {
     @Test
     void testCreateFilm() {
         Film film = createTestFilm(name, description, pg);
-        filmDbStorage.createFilm(film);
-        Film savedFilm = filmDbStorage.getFilm(film.getId());
+        filmService.createFilm(film);
+        Film savedFilm = filmService.getFilm(film.getId());
         assertThat(savedFilm).isNotNull();
         assertThat(savedFilm.getId()).isEqualTo(1L);
         assertThat(savedFilm.getName()).isEqualTo(name);
@@ -78,8 +80,8 @@ public class FilmDbStorageTest {
         Film film = createTestFilm(name, description, pg);
         List<Genre> genres = Arrays.asList(comedy, drama);
         film.setGenres(genres);
-        filmDbStorage.createFilm(film);
-        Film savedFilm = filmDbStorage.getFilm(film.getId());
+        filmService.createFilm(film);
+        Film savedFilm = filmService.getFilm(film.getId());
         List<Integer> genresIds = savedFilm.getGenres().stream().map(Genre::getId).toList();
         assertThat(genresIds).hasSize(2);
         assertThat(genresIds).contains(comedy.getId(), drama.getId());
@@ -88,9 +90,9 @@ public class FilmDbStorageTest {
     @Test
     void testGetFilm() {
         Film film = createTestFilm(name, description, pg);
-        filmDbStorage.createFilm(film);
+        filmService.createFilm(film);
         Long filmId = film.getId();
-        Film foundFilm = filmDbStorage.getFilm(filmId);
+        Film foundFilm = filmService.getFilm(filmId);
         assertThat(foundFilm).isNotNull();
         assertThat(foundFilm.getId()).isEqualTo(filmId);
         assertThat(foundFilm.getName()).isEqualTo(name);
@@ -98,7 +100,7 @@ public class FilmDbStorageTest {
 
     @Test
     void testGetFilmNotFound() {
-        Film foundFilm = filmDbStorage.getFilm(45745756L);
+        Film foundFilm = filmService.getFilm(45745756L);
         assertThat(foundFilm).isNull();
     }
 
@@ -106,9 +108,9 @@ public class FilmDbStorageTest {
     void testGetAllFilms() {
         Film film1 = createTestFilm("first film", "desc 111", pg);
         Film film2 = createTestFilm("second film", "desc 222", nc17);
-        filmDbStorage.createFilm(film1);
-        filmDbStorage.createFilm(film2);
-        List<Film> films = filmDbStorage.getFilms();
+        filmService.createFilm(film1);
+        filmService.createFilm(film2);
+        List<Film> films = filmService.getAllFilms();
         assertThat(films).hasSize(2);
         assertThat(films.getFirst().getName()).isEqualTo("first film");
         assertThat(films.getLast().getName()).isEqualTo("second film");
@@ -117,7 +119,7 @@ public class FilmDbStorageTest {
     @Test
     void testAddAndRemoveLike() {
         Film film = createTestFilm(name, description, pg);
-        filmDbStorage.createFilm(film);
+        filmService.createFilm(film);
         Long filmId = film.getId();
         User user = new User();
         user.setEmail("example@mail.ru");
@@ -126,10 +128,10 @@ public class FilmDbStorageTest {
         user.setBirthday(LocalDate.of(1990, 1, 1));
         userDbStorage.createUser(user);
         Long userId = user.getId();
-        filmDbStorage.addLike(userId, filmId);
+        filmService.addLike(userId, filmId);
         Set<Long> likes = filmDbStorage.getLikes(filmId);
         assertThat(likes).contains(userId);
-        filmDbStorage.removeLike(userId, filmId);
+        filmService.removeLike(userId, filmId);
         likes = filmDbStorage.getLikes(filmId);
         assertThat(likes).doesNotContain(userId);
     }
@@ -139,8 +141,8 @@ public class FilmDbStorageTest {
         Film film = createTestFilm(name, description, pg);
         List<Genre> genres = Arrays.asList(comedy, drama, science);
         film.setGenres(genres);
-        filmDbStorage.createFilm(film);
-        Film savedFilm = filmDbStorage.getFilm(film.getId());
+        filmService.createFilm(film);
+        Film savedFilm = filmService.getFilm(film.getId());
         List<Integer> genresIds = savedFilm.getGenres().stream().map(Genre::getId).toList();
         assertThat(genresIds).hasSize(3);
         assertThat(genresIds).contains(comedy.getId(), drama.getId(), science.getId());

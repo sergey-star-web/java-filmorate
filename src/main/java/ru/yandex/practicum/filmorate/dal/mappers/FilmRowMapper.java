@@ -24,6 +24,7 @@ public class FilmRowMapper implements RowMapper<Film> {
         LocalDate releaseDate = resultSet.getTimestamp("releaseDate").toLocalDateTime().toLocalDate();
         film.setReleaseDate(LocalDate.from((TemporalAccessor) releaseDate));
         film.setDuration(resultSet.getInt("duration"));
+        film.setMpaId(resultSet.getInt("mpa_rating_id"));
         return film;
     }
 }

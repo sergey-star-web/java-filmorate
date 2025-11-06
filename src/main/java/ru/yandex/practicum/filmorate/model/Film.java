@@ -38,5 +38,10 @@ public class Film {
     public Film() {
         genres = new ArrayList<>();
         likes = new HashSet<>();
+        mpa = new Mpa();
+    }
+
+    public void setMpaId(Integer id) {
+        mpa.setId(id);
     }
 }

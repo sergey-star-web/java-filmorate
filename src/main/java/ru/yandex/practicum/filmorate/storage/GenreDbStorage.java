@@ -46,6 +46,12 @@ public class GenreDbStorage extends BaseRepository<Genre> implements GenreStorag
         return jdbc.query(findAllQuery, new GenreInFilmRowMapper());
     }
 
+    public List<Genre> getGenresInFilm(Long filmId) {
+        String findAllQuery = "SELECT DISTINCT g.id, g.name, gif.film_id FROM GENRES_IN_FILM AS gif \n" +
+                "INNER JOIN GENRES AS g ON g.ID = gif.GENRE_ID WHERE gif.film_id = " + filmId + " ORDER BY g.id ASC";
+        return jdbc.query(findAllQuery, new GenreInFilmRowMapper());
+    }
+
     public void saveGenresInFilm(Long filmId, Integer genreId) {
         String insertGenresInFilm = "INSERT INTO genres_in_film(film_id, genre_id) values (?, ?)";
         insert(insertGenresInFilm,
