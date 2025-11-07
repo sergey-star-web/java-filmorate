@@ -2,27 +2,104 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 public class FilmService {
     @Autowired
     private FilmStorage filmStorage;
+    @Autowired
+    private MpaService mpaService;
+    @Autowired
+    private GenreService genreService;
+    @Autowired
+    private LikeService likeService;
+    private final String warnEmptyGenreInFilm = "Для фильма с ID {} жанры не найдены";
 
     public Film createFilm(Film film) {
-        return filmStorage.createFilm(film);
+        // Проверка существования рейтинга Mpa
+        Integer mpaId = film.getMpa().getId();
+        if (!mpaService.exists(mpaId)) {
+            String errorMessage = String.format("Не найден рейтинг с ID %d", mpaId);
+            log.warn(errorMessage);
+            throw new NotFoundException();
+        }
+        List<Integer> genres = genreService.getAllGenres().stream()
+                .map(Genre::getId)
+                .toList();
+        // Проверка соответствия жанров
+        for (Genre genre : film.getGenres()) {
+            Integer genreId = genre.getId();
+            if (!genres.contains(genreId)) {
+                String errorMessage = String.format("Не найден жанр с ID %d", genreId);
+                log.warn(errorMessage);
+                throw new NotFoundException();
+            }
+        }
+        filmStorage.createFilm(film);
+        // сохраняем жанры в промежуточную таблицу
+        for (Genre genre : film.getGenres()) {
+            if (genre.getId() != null) {
+                genreService.saveGenresInFilm(film.getId(), genre.getId());
+            }
+        }
+        return getFilm(film.getId());
+    }
+
+    private void setLikesInFilm(Film film, List<Long> likes) {
+        film.setLikes(new HashSet<>(likes));
+    }
+
+    private void setMpaInFilm(Film film) {
+        Mpa mpa = mpaService.getMpa(film.getMpa().getId());
+        film.setMpa(mpa);
+    }
+
+    private void setGenreInFilm(Film film, List<Genre> genreInFilm) {
+        if (!genreInFilm.isEmpty()) {
+            film.setGenres(genreInFilm);
+        } else {
+            log.warn(warnEmptyGenreInFilm, film.getId());
+        }
     }
 
     public List<Film> getAllFilms() {
-        return filmStorage.getFilms();
+        List<Film> films = filmStorage.getFilms();
+        List<Genre> genres = genreService.getAllGenresInFilm();
+        HashMap<Long, Long> likes = likeService.getAllLikes();
+        for (Film film : films) {
+            // Получаем жанры конкретного фильма
+            List<Genre> genreInFilm = genres.stream()
+                            .filter(g -> g.getFilmId().equals(film.getId()))
+                            .toList();
+            genres.removeIf(genreInFilm::contains);
+            // Получаем лайки конкретного фильма
+            List<Long> likesInFilm = likes.entrySet().stream()
+                    .filter(entry -> entry.getValue().equals(film.getId()))
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toList());
+            likes.entrySet().removeIf(entry -> likesInFilm.contains(entry.getKey()));
+            setMpaInFilm(film);
+            setLikesInFilm(film, likesInFilm);
+            setGenreInFilm(film, genreInFilm);
+        }
+        return films;
     }
 
     public Film updateFilm(Film updatedFilm) {
+        Film film = filmStorage.getFilm(updatedFilm.getId());
+        if (film == null) {
+            throw new NotFoundException();
+        }
         return filmStorage.updateFilm(updatedFilm);
     }
 
@@ -39,6 +116,13 @@ public class FilmService {
     }
 
     public Film getFilm(Long id) {
-        return filmStorage.getFilm(id);
+        Film film = filmStorage.getFilm(id);
+        if (film != null) {
+            setMpaInFilm(film);
+            setGenreInFilm(film, genreService.getGenresInFilm(id));
+            setLikesInFilm(film, likeService.getLikesInFim(id));
+            return film;
+        }
+        return null;
     }
 }

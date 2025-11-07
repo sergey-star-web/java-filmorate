@@ -1,11 +1,13 @@
 package ru.yandex.practicum.filmorate.exception;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @ControllerAdvice
@@ -15,9 +17,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(NotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Map<String, String> notFoundHandler(NotFoundException e) {
-        return Map.of(error, "Объект не найден.",
-                message, e.getMessage());
+    public ResponseEntity<Map<String, Object>> notFoundHandler(NotFoundException e) {
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("type", "about:blank");
+        responseBody.put("title", "Not Found");
+        responseBody.put("status", 404);
+        responseBody.put("detail", e.getMessage());
+        responseBody.put("instance", "/films");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseBody);
     }
 
     @ExceptionHandler
@@ -48,4 +55,3 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 message, ex.getMessage());
     }
 }
-

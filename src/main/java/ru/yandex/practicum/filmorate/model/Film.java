@@ -8,7 +8,9 @@ import org.hibernate.validator.constraints.Length;
 import ru.yandex.practicum.filmorate.valid.MinReleaseDate;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static ru.yandex.practicum.filmorate.constant.Constant.dateTimeFormatString;
@@ -29,17 +31,17 @@ public class Film {
     private LocalDate releaseDate;
     @Min(value = 0, message = "Продолжительность фильма должна быть положительным числом")
     private Integer duration;
+    private Mpa mpa;
+    private List<Genre> genres;
     private Set<Long> likes;
 
     public Film() {
+        genres = new ArrayList<>();
         likes = new HashSet<>();
+        mpa = new Mpa();
     }
 
-    public boolean addLike(Long id) {
-        return likes.add(id);
-    }
-
-    public boolean removeLike(Long id) {
-        return likes.remove(id);
+    public void setMpaId(Integer id) {
+        mpa.setId(id);
     }
 }

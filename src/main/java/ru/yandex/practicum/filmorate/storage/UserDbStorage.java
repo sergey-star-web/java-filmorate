@@ -1,34 +1,52 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.dal.BaseRepository;
+import ru.yandex.practicum.filmorate.dal.mappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.exception.FriendsAddException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Component
 @Slf4j
-public class InMemoryUserStorage implements UserStorage {
-    private HashMap<Long, User> users = new HashMap<>();
-    private Long idCounter = 1L;
+public class UserDbStorage extends BaseRepository<User> implements UserStorage {
+    @Autowired
+    private JdbcTemplate jdbc;
+
+    public UserDbStorage(JdbcTemplate jdbc, UserRowMapper mapper) {
+        super(jdbc, mapper, User.class);
+    }
 
     @Override
     public User createUser(User user) {
+        String insertUsersQuery = "INSERT INTO users(id, email, login, name, birthday)" +
+                "VALUES (?, ?, ?, ?, ?)";
+
         log.info("Получен запрос на создание пользователя: {}", user);
-        user.setId(genNextId());
-        users.put(user.getId(), user);
+        Long id = jdbc.queryForObject("SELECT NEXT VALUE FOR user_id_seq", Long.class);
+        user.setId(id);
+        insert(insertUsersQuery,
+                id,
+                user.getEmail(),
+                user.getLogin(),
+                user.getName(),
+                user.getBirthday()
+        );
         log.info("Пользователь успешно создан. Созданный пользователь: {}", user);
-        return user;
+        return getUser(id);
     }
 
     @Override
     public User addFriend(Long userId, Long friendId) {
-        User user = users.get(userId);
-        User friend = users.get(friendId);
+        String insertFriendsQuery = "INSERT INTO friends(user_send_id, user_received_id) values (?, ?)";
 
+        User user = getUser(userId);
+        User friend = getUser(friendId);
         if (user == null) {
             throw new NotFoundException("Пользователь с id " + userId + " не найдено");
         }
@@ -39,93 +57,96 @@ public class InMemoryUserStorage implements UserStorage {
             throw new FriendsAddException("Пользователи с id " + userId + " и " + friendId +
                     " уже в друзьях друг у друга");
         }
-        user.addFriend(friendId);
-        friend.addFriend(userId);
+        insert(insertFriendsQuery,
+                user.getId(),
+                friend.getId()
+        );
         log.info("Пользователь {} добавил в друзья пользователя {} ", userId, friendId);
         return user;
     }
 
     @Override
     public User removeFriend(Long userId, Long friendId) {
-        User user = users.get(userId);
-        User friend = users.get(friendId);
+        String deleteFriendsQuery = "DELETE FROM friends WHERE user_send_id = ? AND user_received_id = ?";
 
+        User user = getUser(userId);
+        User friend = getUser(friendId);
         if (user == null) {
             throw new NotFoundException("Пользователь с id " + userId + " не найдено");
         }
         if (friend == null) {
             throw new NotFoundException("Пользователь с id " + friendId + " не найдено");
         }
-        if (!user.getFriends().contains(friendId) || !friend.getFriends().contains(userId)) {
+        if (!getFriends(userId).contains(friend)) {
             log.info("Попытка удалить несуществующую дружбу между {} и {}", userId, friendId);
             return user;
         }
-        user.deleteFriend(friendId);
-        friend.deleteFriend(userId);
+        update(deleteFriendsQuery,
+                userId,
+                friendId
+        );
         log.info("Пользователь {} удалил из друзей пользователя {}", userId, friendId);
         return user;
     }
 
     @Override
     public Set<User> getFriends(Long id) {
-        User user = users.get(id);
+        String findByAllFriendsQuery = "select u.* from users as u inner join friends as f " +
+                "on u.id = f.user_received_id where f.user_send_id = ?";
 
+        User user = getUser(id);
         if (user == null) {
             throw new NotFoundException("Пользователь с id " + id + " не найден");
         }
-        return user.getFriends().stream()
-                .map(users::get)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
+        List<User> friends = jdbc.query(findByAllFriendsQuery, new UserRowMapper(), id);
+        return new HashSet<>(friends);
     }
 
     @Override
     public Set<User> getCommonFriends(Long userId, Long otherId) {
-        User user = users.get(userId);
-        User otherUser = users.get(otherId);
-
+        User user = getUser(userId);
+        User otherUser = getUser(otherId);
         if (user == null) {
             throw new NotFoundException("Пользователь с id " + userId + " не найден");
         }
         if (otherUser == null) {
             throw new NotFoundException("Пользователь с id " + otherId + " не найден");
         }
-        Set<Long> commonFriendIds = new HashSet<>(user.getFriends());
-        commonFriendIds.retainAll(otherUser.getFriends());
-        return commonFriendIds.stream()
-                .map(users::get)
-                .collect(Collectors.toSet());
-    }
-
-    private Long genNextId() {
-        return idCounter++;
+        Set<User> friendUser = getFriends(userId);
+        Set<User> friendOtherUser = getFriends(otherId);
+        friendUser.retainAll(friendOtherUser);
+        return friendUser;
     }
 
     @Override
     public List<User> getUsers() {
-        return new ArrayList<>(users.values());
+        String findAllQuery = "SELECT * FROM users";
+
+        return findMany(findAllQuery);
     }
 
     @Override
     public User getUser(Long id) {
-        return users.get(id);
+        String findByIdQuery = "SELECT * FROM users WHERE id = ?";
+
+        Optional<User> filmOptional = findOne(findByIdQuery, id);
+        return filmOptional.orElse(null);
     }
 
     @Override
     public User updateUser(User updateUser) {
-        Long id = updateUser.getId();
-        throwIfNoUser(id);
-        users.put(updateUser.getId(), updateUser);
-        log.info("Пользователь успешно обновлен. Измененный пользователь: {}", updateUser);
-        return updateUser;
-    }
+        String updateQuery = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? WHERE id = ?";
 
-    private void throwIfNoUser(Long id) {
-        User user = users.get(id);
-        if (user == null) {
-            String errorMessage = String.format("Не найден пользователь с %d", id);
-            log.warn(errorMessage);
-            throw new NotFoundException(errorMessage);
-        }
+        Long id = updateUser.getId();
+        update(
+                updateQuery,
+                updateUser.getEmail(),
+                updateUser.getLogin(),
+                updateUser.getName(),
+                updateUser.getBirthday(),
+                id
+        );
+        log.info("Пользователь успешно обновлен. Измененный пользователь: {}", updateUser);
+        return getUser(id);
     }
 }

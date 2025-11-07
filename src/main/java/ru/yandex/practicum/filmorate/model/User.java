@@ -43,12 +43,4 @@ public class User {
     public User() {
         friends = new HashSet<>();
     }
-
-    public boolean addFriend(Long id) {
-        return friends.add(id);
-    }
-
-    public boolean deleteFriend(Long id) {
-        return friends.remove(id);
-    }
 }
